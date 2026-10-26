@@ -3,6 +3,7 @@ package io.github.jpsutton.inkstash
 import android.content.Context
 import io.github.jpsutton.inkstash.data.CardRepository
 import io.github.jpsutton.inkstash.data.CollectionRepository
+import io.github.jpsutton.inkstash.data.SyncStore
 import io.github.jpsutton.inkstash.data.InkstashDatabase
 import io.github.jpsutton.inkstash.scan.CardMatcher
 import io.github.jpsutton.inkstash.scan.NameAnchorLocator
@@ -22,7 +23,12 @@ class AppContainer(val context: Context) {
 
     val db: InkstashDatabase = InkstashDatabase.create(context)
     val cards = CardRepository(db, prefs, http)
-    val collection = CollectionRepository(db)
+    /** This install's id in the operation log (and in a mesh). Random, made once. */
+    val nodeId: String = prefs.getString(KEY_NODE_ID, null) ?: java.util.UUID.randomUUID().toString().also {
+        prefs.edit().putString(KEY_NODE_ID, it).apply()
+    }
+    val sync = SyncStore(db, nodeId)
+    val collection = CollectionRepository(db, sync)
     val ocr by lazy { OcrEngine() }
 
     /** Photo scan result waiting for the review screen. */
@@ -43,6 +49,7 @@ class AppContainer(val context: Context) {
 
     companion object {
         private const val KEY_THEME = "theme"
+        private const val KEY_NODE_ID = "node_id"
     }
 }
 

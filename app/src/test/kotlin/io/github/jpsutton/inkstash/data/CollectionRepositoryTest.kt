@@ -83,7 +83,7 @@ class CollectionRepositoryTest : DbTestBase() {
         assertEquals(before, total())
         assertEquals(2, qty("a", GENERAL_ID))
         assertEquals(1, qty("b", pool))
-        assertNull(db.locations().byId(temp))
+        assertTrue(db.locations().byId(temp)!!.deleted)
         assertTrue(db.holdings().all().none { it.sourceLocationId != Holding.NO_SOURCE })
     }
 
@@ -105,7 +105,7 @@ class CollectionRepositoryTest : DbTestBase() {
         repo.deleteLocation(pool)
         assertEquals(3, qty("a", GENERAL_ID))
         assertEquals(1, db.holdings().inLocation(GENERAL_ID).size)
-        assertNull(db.locations().byId(pool))
+        assertTrue(db.locations().byId(pool)!!.deleted)
         assertEquals(3, total())
     }
 
@@ -125,7 +125,7 @@ class CollectionRepositoryTest : DbTestBase() {
         repo.move(db.holdings().inLocation(GENERAL_ID).single().id, 1, temp)
         repo.deleteLocation(temp)
         assertEquals(1, qty("a", GENERAL_ID))
-        assertNull(db.locations().byId(temp))
+        assertTrue(db.locations().byId(temp)!!.deleted)
     }
 
     @Test fun generalCannotBeDeletedOrRenamed() = runBlocking {
