@@ -1,6 +1,6 @@
 # inkstash
 
-A Disney Lorcana collection tracker for Android tablets, made for kids to use. Lay a grid of cards on a table, take one photo, and inkstash reads each card's collector number, finds it in a card database and adds it to your collection. Everything stays on the tablet.
+A Disney Lorcana collection tracker for Android tablets and phones, made for kids to use. Lay a grid of cards on a table, take one photo, and inkstash reads each card's collector number, finds it in a card database and adds it to your collection. Everything stays on the tablet.
 
 - **Scan** up to nine cards at once (twelve is possible but tricky), check the matches, add them.
 - **Collection** with filters for ink, set, rarity, type and place, plus name search.
@@ -11,7 +11,7 @@ A Disney Lorcana collection tracker for Android tablets, made for kids to use. L
 
 ## Install
 
-inkstash runs on Android 8.0 or newer, on tablets with Google Play Services. It is one universal APK.
+inkstash runs on Android 8.0 or newer, on tablets and phones with Google Play Services. It is one universal APK. Screens narrower than 600 dp (smallest side) get the phone layout: a bottom navigation bar, one column per screen and bottom sheets. Wider screens get the tablet layout with the side rail.
 
 The easiest way to install and update it is inkstash's F-Droid repository, which works in F-Droid, Droid-ify and Neo Store:
 
@@ -46,7 +46,7 @@ The release build has no signing config, so the APK is unsigned. CI signs it. Te
 | --- | --- |
 | `app/src/main/kotlin/.../data` | Room entities, DAOs, `CollectionRepository`, Lorcast sync, backup |
 | `app/src/main/kotlin/.../scan` | `OcrEngine` (ML Kit, bundled model), `CollectorLineParser`, `CardLocator`, `CardMatcher` |
-| `app/src/main/kotlin/.../ui` | Compose screens: collection, card detail, scan, review, places, temp set, settings |
+| `app/src/main/kotlin/.../ui` | Compose screens: collection, card detail, scan, review, places, temp set, settings. Each has a tablet and a phone layout |
 | `scripts/` | `fetch-cards.sh`, and `ci/` for versioning and the F-Droid repository |
 | `packaging/fdroid/` | F-Droid metadata and icon |
 

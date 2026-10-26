@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -56,6 +58,7 @@ import io.github.jpsutton.inkstash.ui.Ink
 import io.github.jpsutton.inkstash.ui.InkTextField
 import io.github.jpsutton.inkstash.ui.Muted
 import io.github.jpsutton.inkstash.ui.SheetDialog
+import io.github.jpsutton.inkstash.ui.isCompact
 import io.github.jpsutton.inkstash.ui.Title
 
 private sealed interface Confirm {
@@ -71,7 +74,11 @@ fun MeshScreen(vm: MeshViewModel, onBack: () -> Unit, onScanCode: () -> Unit) {
     val c = Ink.colors
     var confirm by remember { mutableStateOf<Confirm?>(null) }
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 32.dp, vertical = 28.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+            .padding(horizontal = if (isCompact()) 16.dp else 32.dp, vertical = if (isCompact()) 20.dp else 28.dp),
+        verticalArrangement = Arrangement.spacedBy(if (isCompact()) 16.dp else 20.dp),
+    ) {
         Row(Modifier.clip(RoundedCornerShape(26.dp)).clickable(onClick = onBack).height(48.dp).padding(end = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Icon(Icons.AutoMirrored.Outlined.ArrowBack, null, tint = c.text)
             Text("Settings", color = c.text, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
@@ -234,7 +241,7 @@ private fun InviteDialog(invite: MeshInvite, onDone: () -> Unit) {
             Text("Scan this with the new device", fontFamily = Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 26.sp, color = c.text)
             Image(
                 bitmap.asImageBitmap(), "QR code to join this mesh", filterQuality = FilterQuality.None,
-                modifier = Modifier.size(360.dp).clip(RoundedCornerShape(12.dp)),
+                modifier = Modifier.fillMaxWidth().widthIn(max = 360.dp).aspectRatio(1f).clip(RoundedCornerShape(12.dp)),
             )
             val min = (remaining.coerceAtLeast(0) / 60_000).toInt()
             val sec = ((remaining.coerceAtLeast(0) / 1000) % 60).toInt()
