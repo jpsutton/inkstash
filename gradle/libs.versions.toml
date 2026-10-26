@@ -11,6 +11,7 @@ camerax = "1.6.2"
 mlkit = "16.0.1"
 coil = "3.6.3"
 exif = "1.4.2"
+avif = "1.3.0.841110fd"
 okhttp = "5.5.1"
 serialization = "1.12.0"
 coroutines = "1.11.0"
@@ -37,6 +38,7 @@ camerax-core = { module = "androidx.camera:camera-core", version.ref = "camerax"
 camerax-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
 camerax-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
 camerax-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
+avif = { module = "org.aomedia.avif.android:avif", version.ref = "avif" }
 exif = { module = "androidx.exifinterface:exifinterface", version.ref = "exif" }
 mlkit-text = { module = "com.google.mlkit:text-recognition", version.ref = "mlkit" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }

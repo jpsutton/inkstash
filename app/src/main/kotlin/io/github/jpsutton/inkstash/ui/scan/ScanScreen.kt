@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.jpsutton.inkstash.scan.ScanMode
 import io.github.jpsutton.inkstash.ui.Muted
 import kotlinx.coroutines.launch
 import java.io.File
@@ -74,10 +75,10 @@ fun ScanScreen(vm: ScanViewModel, onClose: () -> Unit, onScanned: () -> Unit) {
     val scope = rememberCoroutineScope()
     var granted by remember { mutableStateOf(ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? -> uri?.let { vm.scanUri(ctx.contentResolver, it, onScanned) } }
+    var mode by remember { mutableStateOf(GuideMode.ONE) }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? -> uri?.let { vm.scanUri(ctx.contentResolver, it, mode.scan, onScanned) } }
     LaunchedEffect(Unit) { if (!granted) permission.launch(Manifest.permission.CAMERA) }
 
-    var cols by remember { mutableStateOf(3) }
     var flash by remember { mutableStateOf(false) }
     val capture = remember { ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY).build() }
     var camera by remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
@@ -103,7 +104,7 @@ fun ScanScreen(vm: ScanViewModel, onClose: () -> Unit, onScanned: () -> Unit) {
         val file = File.createTempFile("scan", ".jpg", ctx.cacheDir)
         capture.takePicture(ImageCapture.OutputFileOptions.Builder(file).build(), ContextCompat.getMainExecutor(ctx), object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                scope.launch { vm.scanUri(ctx.contentResolver, Uri.fromFile(file), onScanned); file.delete() }
+                scope.launch { vm.scanUri(ctx.contentResolver, Uri.fromFile(file), mode.scan, onScanned); file.delete() }
             }
             override fun onError(e: ImageCaptureException) { vm.fail("Couldn't take the photo. Try again.") }
         })
@@ -116,16 +117,16 @@ fun ScanScreen(vm: ScanViewModel, onClose: () -> Unit, onScanned: () -> Unit) {
                 Text("The camera needs your OK", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
                 Muted("Tap the camera permission button, or pick a photo instead.", size = 16)
             }
-            GuideFrame(cols)
+            GuideFrame(mode)
             RoundOverlay(Modifier.align(Alignment.TopStart).padding(24.dp).size(56.dp).clickable(onClick = onClose).semantics { contentDescription = "Close camera" }, CircleShape) {
                 Icon(Icons.Outlined.Close, null, tint = Color.White)
             }
-            Pill(if (cols == 3) "Lay up to 9 cards in a grid and fill the frame" else "12 cards is tricky. Get close and use good light", 18, Modifier.align(Alignment.TopCenter).padding(top = 28.dp))
+            Pill(mode.hint, 18, Modifier.align(Alignment.TopCenter).padding(top = 28.dp))
             Row(Modifier.align(Alignment.TopEnd).padding(24.dp).clip(RoundedCornerShape(28.dp)).background(Scrim).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                for (n in listOf(3, 4)) Text(
-                    "${n * 3} cards", color = if (n == cols) Color(0xFF1B1A3A) else Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.height(48.dp).clip(RoundedCornerShape(24.dp)).background(if (n == cols) Amber else Color.Transparent)
-                        .clickable { cols = n }.padding(horizontal = 18.dp).wrapContentCenter(),
+                for (m in GuideMode.entries) Text(
+                    m.label, color = if (m == mode) Color(0xFF1B1A3A) else Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.height(48.dp).clip(RoundedCornerShape(24.dp)).background(if (m == mode) Amber else Color.Transparent)
+                        .clickable { mode = m }.padding(horizontal = 18.dp).wrapContentCenter(),
                 )
             }
             Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 26.dp).clip(RoundedCornerShape(24.dp)).background(Scrim).height(48.dp).padding(horizontal = 22.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -179,11 +180,22 @@ private fun RoundOverlay(modifier: Modifier, shape: androidx.compose.ui.graphics
     Box(modifier.clip(shape).background(Scrim), Alignment.Center) { content() }
 }
 
+/** What the guide shows: one big card, or a 3x3 / 4x3 grid of slots. */
+private enum class GuideMode(val label: String, val cols: Int, val rows: Int, val scan: ScanMode, val hint: String) {
+    ONE("1 card", 1, 1, ScanMode.SINGLE, "Put one card in the frame and fill it"),
+    NINE("9 cards", 3, 3, ScanMode.GRID, "Lay up to 9 cards in a grid and fill the frame"),
+    TWELVE("12 cards", 4, 3, ScanMode.GRID, "12 cards is tricky. Get close and use good light"),
+}
+
 /** Corner brackets and dashed card slots that show how to lay cards out. */
 @Composable
-private fun GuideFrame(cols: Int) {
-    val frameW = (cols * 140 + (cols - 1) * 16 + 48).dp
-    Box(Modifier.width(frameW).height(668.dp)) {
+private fun GuideFrame(mode: GuideMode) {
+    val single = mode == GuideMode.ONE
+    val slotW = if (single) 440.dp else 140.dp
+    val slotH = if (single) 616.dp else 196.dp
+    val gap = 16.dp
+    val frameW = slotW * mode.cols + gap * (mode.cols - 1) + 48.dp
+    Box(Modifier.width(frameW).height(if (single) 668.dp else 668.dp)) {
         val corner = Modifier.size(44.dp)
         for (a in listOf(Alignment.TopStart, Alignment.TopEnd, Alignment.BottomStart, Alignment.BottomEnd)) {
             Box(Modifier.align(a).then(corner).border(
@@ -197,12 +209,12 @@ private fun GuideFrame(cols: Int) {
             ))
         }
     }
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        repeat(3) {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                repeat(cols) {
-                    Box(Modifier.size(140.dp, 196.dp).clip(RoundedCornerShape(12.dp)).border(3.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(12.dp)), Alignment.BottomStart) {
-                        Box(Modifier.padding(10.dp).height(12.dp).width(87.dp).clip(RoundedCornerShape(4.dp)).background(Amber.copy(alpha = 0.75f)))
+    Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+        repeat(mode.rows) {
+            Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                repeat(mode.cols) {
+                    Box(Modifier.size(slotW, slotH).clip(RoundedCornerShape(12.dp)).border(3.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(12.dp)), Alignment.BottomStart) {
+                        Box(Modifier.padding(10.dp).height(12.dp).width(slotW * 0.62f).clip(RoundedCornerShape(4.dp)).background(Amber.copy(alpha = 0.75f)))
                     }
                 }
             }

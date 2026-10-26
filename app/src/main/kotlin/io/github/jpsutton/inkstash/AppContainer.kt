@@ -5,9 +5,11 @@ import io.github.jpsutton.inkstash.data.CardRepository
 import io.github.jpsutton.inkstash.data.CollectionRepository
 import io.github.jpsutton.inkstash.data.InkstashDatabase
 import io.github.jpsutton.inkstash.scan.CardMatcher
+import io.github.jpsutton.inkstash.scan.NameAnchorLocator
 import io.github.jpsutton.inkstash.scan.OcrEngine
 import io.github.jpsutton.inkstash.scan.ScanPipeline
 import io.github.jpsutton.inkstash.scan.ScanRow
+import io.github.jpsutton.inkstash.scan.TiledTextReader
 import io.github.jpsutton.inkstash.ui.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +36,10 @@ class AppContainer(val context: Context) {
         _theme.value = mode
     }
 
-    suspend fun newScanPipeline(): ScanPipeline = ScanPipeline(ocr, CardMatcher(db.cards().all()))
+    suspend fun newScanPipeline(): ScanPipeline {
+        val cards = db.cards().all()
+        return ScanPipeline(TiledTextReader(ocr), CardMatcher(cards), NameAnchorLocator(cards.map { it.name }))
+    }
 
     companion object {
         private const val KEY_THEME = "theme"
