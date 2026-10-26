@@ -28,9 +28,11 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +43,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.jpsutton.inkstash.data.Card
+import io.github.jpsutton.inkstash.data.CardValue
 import io.github.jpsutton.inkstash.data.GENERAL_ID
 import io.github.jpsutton.inkstash.data.Location
 import io.github.jpsutton.inkstash.data.LocationKind
@@ -58,6 +65,11 @@ import io.github.jpsutton.inkstash.ui.ButtonStyle
 import io.github.jpsutton.inkstash.ui.CardArt
 import io.github.jpsutton.inkstash.ui.CostGem
 import io.github.jpsutton.inkstash.ui.Ink
+import io.github.jpsutton.inkstash.ui.Fredoka
+import io.github.jpsutton.inkstash.ui.SheetTitle
+import io.github.jpsutton.inkstash.ui.cancelStyle
+import io.github.jpsutton.inkstash.ui.confirmStyle
+import io.github.jpsutton.inkstash.ui.isCompact
 import io.github.jpsutton.inkstash.ui.InkColor
 import io.github.jpsutton.inkstash.ui.Muted
 import io.github.jpsutton.inkstash.ui.RoundIconButton
@@ -75,7 +87,9 @@ fun CardDetailScreen(vm: CardDetailViewModel, onBack: () -> Unit) {
     var moving by remember { mutableStateOf<CopyRow?>(null) }
     var adding by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 28.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    if (isCompact()) DetailPhone(
+        s, card, ink, onBack, onMove = { moving = it }, onRemove = { vm.removeOne(it.holding.id) }, onAdd = { adding = true },
+    ) else Column(Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 28.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Row(
             Modifier.clip(RoundedCornerShape(26.dp)).clickable(onClick = onBack).height(52.dp).padding(end = 16.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -97,6 +111,7 @@ fun CardDetailScreen(vm: CardDetailViewModel, onBack: () -> Unit) {
                     Text(card.version, color = c.muted, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
                 Facts(card, ink)
+                ValuePanel(card, s.value, s.total)
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text("Your copies", fontFamily = io.github.jpsutton.inkstash.ui.Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, color = c.text, modifier = Modifier.weight(1f))
@@ -118,6 +133,114 @@ fun CardDetailScreen(vm: CardDetailViewModel, onBack: () -> Unit) {
     if (adding) AddCopyDialog(s.locations, onDismiss = { adding = false }, onAdd = { foil, loc -> vm.addCopy(foil, loc); adding = false })
 }
 
+/** The phone layout: art on top, then the facts, the copies and the add button, in one scrolling column. */
+@Composable
+private fun DetailPhone(
+    s: CardDetailState, card: Card, ink: InkColor, onBack: () -> Unit,
+    onMove: (CopyRow) -> Unit, onRemove: (CopyRow) -> Unit, onAdd: () -> Unit,
+) {
+    val c = Ink.colors
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.height(48.dp).clip(RoundedCornerShape(24.dp)).clickable(onClick = onBack).padding(start = 8.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, null, tint = c.text, modifier = Modifier.size(24.dp))
+                Text("My collection", color = c.text, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+            }
+        }
+        Column(
+            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            Box(
+                Modifier.align(Alignment.CenterHorizontally).size(216.dp, 302.dp)
+                    .shadow(10.dp, RoundedCornerShape(16.dp), spotColor = c.shadow)
+                    .clip(RoundedCornerShape(16.dp)).border(3.dp, ink.color, RoundedCornerShape(16.dp)),
+            ) {
+                CardArt(card, Modifier.fillMaxSize(), ArtSize.Large)
+                CostGem(card.cost, ink, 40.dp, Modifier.align(Alignment.TopStart).padding(10.dp))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Title(card.name, size = 32)
+                Text(card.version, color = c.muted, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+            FactsPhone(card, ink)
+            Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(c.surface).border(2.dp, c.border, RoundedCornerShape(20.dp)).padding(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 6.dp)) {
+                Row(Modifier.padding(start = 2.dp, end = 2.dp, bottom = 8.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Your copies", fontFamily = Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, color = c.text, modifier = Modifier.weight(1f))
+                    Text("${s.total} total", color = c.muted, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+                }
+                for (row in s.rows) {
+                    HorizontalDivider(thickness = 2.dp, color = c.divider)
+                    CopyRowPhone(row, onMove = { onMove(row) }, onRemove = { onRemove(row) })
+                }
+                if (s.rows.isEmpty()) Muted("You don't own this card yet.", Modifier.padding(start = 2.dp, bottom = 8.dp), size = 16)
+            }
+            BigButton("Add a copy", onAdd, icon = Icons.Outlined.Add, style = ButtonStyle.Primary, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+/** Fact chips for the phone: 34 dp tall, outlined, with the ink tinted and the rarity highlighted. */
+@Composable
+private fun FactsPhone(card: Card, ink: InkColor) {
+    val c = Ink.colors
+    @Composable
+    fun Chip(text: String, bg: Color = c.surface, border: Color = c.border, fg: Color = c.text, lead: (@Composable () -> Unit)? = null) {
+        Row(
+            Modifier.height(34.dp).clip(RoundedCornerShape(17.dp)).background(bg).border(2.dp, border, RoundedCornerShape(17.dp)).padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            lead?.invoke()
+            Text(text, color = fg, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+        }
+    }
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        val tint = ink.color.copy(alpha = 0.18f).compositeOver(c.surface)
+        Chip(card.ink.ifBlank { "No ink" }, bg = tint, border = tint, lead = { Box(Modifier.size(12.dp).background(ink.color, CircleShape)) })
+        if (card.inkable) Chip("Inkable", lead = { Icon(Icons.Outlined.WaterDrop, null, tint = c.text, modifier = Modifier.size(14.dp)) })
+        Chip("Costs ${card.cost}")
+        if (card.type.isNotBlank()) Chip(card.type)
+        if (card.rarity.isNotBlank()) Chip(card.rarity, bg = c.warnBg, border = c.accent, fg = c.warnFg)
+        Chip("${card.setName} · ${card.collectorNumber}", fg = c.muted)
+    }
+}
+
+@Composable
+private fun CopyRowPhone(row: CopyRow, onMove: () -> Unit, onRemove: () -> Unit) {
+    val c = Ink.colors
+    val temp = row.place?.kind == LocationKind.TEMP_SET
+    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.size(36.dp).clip(RoundedCornerShape(11.dp)).background(if (temp) c.infoBg else c.surface2), Alignment.Center) {
+            Icon(Icons.Outlined.Inventory2, null, tint = if (temp) c.infoFg else c.text, modifier = Modifier.size(20.dp))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(row.place?.name ?: "Unknown place", color = c.text, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                if (row.holding.foil) Badge("Foil", c.warnBg, c.warnFg, border = c.accent)
+            }
+            Muted(copyKind(row), size = 13)
+        }
+        Text("×${row.holding.quantity}", color = c.text, fontFamily = Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
+        Row(
+            Modifier.height(44.dp).clip(RoundedCornerShape(22.dp)).background(c.primary).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onMove).padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(Icons.Outlined.SwapHoriz, null, tint = c.onPrimary, modifier = Modifier.size(16.dp))
+            Text("Move", color = c.onPrimary, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+        }
+        RoundIconButton(Icons.Outlined.Remove, "Remove one copy from ${row.place?.name}", onRemove, size = 44.dp, tint = c.danger)
+    }
+}
+
+private fun copyKind(row: CopyRow) = when (row.place?.kind) {
+    LocationKind.GENERAL -> "Main collection · ${if (row.holding.foil) "Foil" else "Normal"}"
+    LocationKind.TEMP_SET -> "Temp set" + (row.sourceName?.let { " · borrowed from $it" } ?: "")
+    else -> "Pool"
+}
+
 @Composable
 private fun Facts(card: Card, ink: InkColor) {
     val c = Ink.colors
@@ -134,6 +257,47 @@ private fun Facts(card: Card, ink: InkColor) {
         if (card.type.isNotBlank()) Fact(card.type)
         if (card.rarity.isNotBlank()) Fact(card.rarity)
         Fact("${card.setName} · ${card.collectorNumber}")
+    }
+}
+
+private val Dollars: java.text.NumberFormat = java.text.NumberFormat.getCurrencyInstance(java.util.Locale.US)
+
+/** "Estimated value": what your copies are worth, and the price of one. A guess, not a promise. */
+@Composable
+private fun ValuePanel(card: Card, value: CardValue?, copies: Int) {
+    val c = Ink.colors
+    val each = buildList {
+        card.priceUsd?.let { add("${Dollars.format(it)} each") }
+        card.priceFoilUsd?.let { add("${Dollars.format(it)} foil") }
+    }
+    val hasPrice = each.isNotEmpty()
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(c.surface).border(2.dp, c.border, RoundedCornerShape(18.dp)).padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Box(Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(c.warnBg), Alignment.Center) {
+            Icon(Icons.Outlined.Sell, null, tint = c.warnFg, modifier = Modifier.size(24.dp))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text("Estimated value", color = c.muted, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+            Text(
+                when {
+                    !hasPrice -> "No price yet"
+                    copies == 0 -> each.joinToString(" · ")
+                    else -> Dollars.format(value?.total ?: 0.0)
+                },
+                fontFamily = io.github.jpsutton.inkstash.ui.Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, color = c.text,
+            )
+            val note = when {
+                !hasPrice -> "Update the card database in Settings to get prices."
+                copies == 0 -> "You don't own this card yet."
+                value != null && value.unpricedCopies > 0 ->
+                    "${each.joinToString(" · ")}. ${plural(value.unpricedCopies, "copy", "copies")} ${if (value.unpricedCopies == 1) "has" else "have"} no price."
+                else -> "For your ${plural(copies, "copy", "copies")}: ${each.joinToString(" · ")}"
+            }
+            Muted(note, size = 14)
+        }
+        Muted("A guess from Lorcast, not a promise", size = 12, modifier = Modifier.width(150.dp))
     }
 }
 
@@ -162,12 +326,7 @@ private fun CopyRowView(row: CopyRow, onMove: () -> Unit, onRemove: () -> Unit) 
         }
         Column(Modifier.weight(1f)) {
             Text(row.place?.name ?: "Unknown place", color = c.text, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-            val kind = when (row.place?.kind) {
-                LocationKind.GENERAL -> "Main collection · ${if (row.holding.foil) "Foil" else "Normal"}"
-                LocationKind.TEMP_SET -> "Temp set" + (row.sourceName?.let { " · borrowed from $it" } ?: "")
-                else -> "Pool"
-            }
-            Muted(kind, size = 14)
+            Muted(copyKind(row), size = 14)
         }
         if (row.holding.foil) Badge("Foil", c.warnBg, c.warnFg, border = c.accent)
         Text("×${row.holding.quantity}", color = c.text, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
@@ -187,7 +346,7 @@ private fun MoveDialog(card: Card, row: CopyRow, locations: List<Location>, onDi
     SheetDialog(onDismiss) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Move cards", fontFamily = io.github.jpsutton.inkstash.ui.Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, color = c.text, modifier = Modifier.weight(1f))
+                SheetTitle("Move cards", Modifier.weight(1f))
                 RoundIconButton(Icons.Outlined.Close, "Close", onDismiss, size = 48.dp)
             }
             Muted("${card.fullName} · from ${row.place?.name}", size = 16)
@@ -221,7 +380,7 @@ private fun MoveDialog(card: Card, row: CopyRow, locations: List<Location>, onDi
             val n = qty.coerceAtMost(from.quantity)
             BigButton(
                 "Move ${plural(n, "card")} to ${destLoc?.name ?: ""}", { dest?.let { onMove(n, it) } },
-                style = ButtonStyle.Primary, enabled = dest != null, modifier = Modifier.fillMaxWidth(), height = 60.dp,
+                style = confirmStyle(), enabled = dest != null, modifier = Modifier.fillMaxWidth(), height = if (isCompact()) 56.dp else 60.dp,
             )
         }
     }
@@ -234,7 +393,7 @@ private fun AddCopyDialog(locations: List<Location>, onDismiss: () -> Unit, onAd
     var dest by remember { mutableStateOf(GENERAL_ID) }
     SheetDialog(onDismiss) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("Add a copy", fontFamily = io.github.jpsutton.inkstash.ui.Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, color = c.text)
+            SheetTitle("Add a copy")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 io.github.jpsutton.inkstash.ui.PillChip("Normal", !foil, { foil = false })
                 io.github.jpsutton.inkstash.ui.PillChip("Foil", foil, { foil = true })
@@ -245,8 +404,8 @@ private fun AddCopyDialog(locations: List<Location>, onDismiss: () -> Unit, onAd
             }
             Spacer(Modifier.height(4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                BigButton("Cancel", onDismiss, modifier = Modifier.weight(1f))
-                BigButton("Add", { onAdd(foil, dest) }, style = ButtonStyle.Primary, icon = Icons.Outlined.Check, modifier = Modifier.weight(1f))
+                BigButton("Cancel", onDismiss, style = cancelStyle(), modifier = Modifier.weight(1f))
+                BigButton("Add", { onAdd(foil, dest) }, style = confirmStyle(), icon = Icons.Outlined.Check, modifier = Modifier.weight(1f))
             }
         }
     }

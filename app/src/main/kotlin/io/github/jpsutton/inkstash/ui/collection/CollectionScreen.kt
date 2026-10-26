@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,11 +15,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -40,6 +44,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
@@ -55,6 +61,7 @@ import io.github.jpsutton.inkstash.ui.CostGem
 import io.github.jpsutton.inkstash.ui.Ink
 import io.github.jpsutton.inkstash.ui.InkColor
 import io.github.jpsutton.inkstash.ui.Muted
+import io.github.jpsutton.inkstash.ui.isCompact
 import io.github.jpsutton.inkstash.ui.Nunito
 import io.github.jpsutton.inkstash.ui.PillChip
 import io.github.jpsutton.inkstash.ui.Title
@@ -63,6 +70,11 @@ import io.github.jpsutton.inkstash.ui.plural
 @Composable
 fun CollectionScreen(vm: CollectionViewModel, onCard: (String) -> Unit, onScan: () -> Unit) {
     val s by vm.state.collectAsStateWithLifecycle()
+    if (isCompact()) CollectionPhone(s, vm, onCard, onScan) else CollectionTablet(s, vm, onCard, onScan)
+}
+
+@Composable
+private fun CollectionTablet(s: CollectionState, vm: CollectionViewModel, onCard: (String) -> Unit, onScan: () -> Unit) {
     val c = Ink.colors
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().padding(start = 32.dp, end = 32.dp, top = 28.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -87,7 +99,7 @@ fun CollectionScreen(vm: CollectionViewModel, onCard: (String) -> Unit, onScan: 
                 GridCells.Adaptive(150.dp),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 120.dp),
+                contentPadding = PaddingValues(bottom = 120.dp),
             ) {
                 items(s.items, key = { it.card.id }) { CardTile(it) { onCard(it.card.id) } }
             }
@@ -107,6 +119,54 @@ fun CollectionScreen(vm: CollectionViewModel, onCard: (String) -> Unit, onScan: 
 }
 
 @Composable
+private fun CollectionPhone(s: CollectionState, vm: CollectionViewModel, onCard: (String) -> Unit, onScan: () -> Unit) {
+    val c = Ink.colors
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Title("My collection")
+                    Muted("${plural(s.totalCopies, "card")} · ${s.distinct} different", size = 14)
+                }
+                SearchField(s.query, vm::setQuery, Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(48.dp))
+                Row(
+                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    LocationPicker(s, vm::setLocation)
+                    PillChip("All inks", s.ink == null, { vm.setInk(null) })
+                    for (ink in InkColor.entries) PillChip(ink.label, s.ink == ink, { vm.setInk(ink) }, dot = ink.color)
+                    Box(Modifier.width(2.dp).height(24.dp).background(c.border))
+                    FilterMenu("Set", s.setFilter, s.setOptions, vm::setSet)
+                    FilterMenu("Rarity", s.rarity, s.rarityOptions.map { it to it }, vm::setRarity)
+                    FilterMenu("Type", s.type, s.typeOptions.map { it to it }, vm::setType)
+                }
+            }
+            if (s.items.isEmpty()) EmptyState(s.hasAny, onScan)
+            else LazyVerticalGrid(
+                GridCells.Adaptive(96.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
+            ) {
+                items(s.items, key = { it.card.id }) { CardTilePhone(it) { onCard(it.card.id) } }
+            }
+        }
+        Row(
+            Modifier.align(Alignment.BottomEnd).padding(16.dp)
+                .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = c.shadow)
+                .clip(RoundedCornerShape(18.dp)).background(c.accent).clickable(onClick = onScan)
+                .height(56.dp).padding(start = 16.dp, end = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(Icons.Outlined.CameraAlt, null, tint = c.onAccent, modifier = Modifier.size(24.dp))
+            Text("Scan cards", color = c.onAccent, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+        }
+    }
+}
+
+@Composable
 private fun EmptyState(hasAny: Boolean, onScan: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(bottom = 120.dp), Arrangement.Center, Alignment.CenterHorizontally) {
         Text(if (hasAny) "No cards match" else "No cards yet", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = Ink.colors.text)
@@ -115,15 +175,16 @@ private fun EmptyState(hasAny: Boolean, onScan: () -> Unit) {
 }
 
 @Composable
-private fun SearchField(value: String, onChange: (String) -> Unit) {
+private fun SearchField(value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier.width(340.dp).height(52.dp)) {
     val c = Ink.colors
+    val compact = isCompact()
     Row(
-        Modifier.width(340.dp).height(52.dp).clip(RoundedCornerShape(26.dp)).background(c.surface)
-            .border(2.dp, c.border, RoundedCornerShape(26.dp)).padding(horizontal = 18.dp),
+        modifier.clip(RoundedCornerShape(26.dp)).background(c.surface)
+            .border(2.dp, c.border, RoundedCornerShape(26.dp)).padding(horizontal = if (compact) 16.dp else 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Icon(Icons.Outlined.Search, null, tint = c.muted, modifier = Modifier.size(22.dp))
+        Icon(Icons.Outlined.Search, null, tint = c.muted, modifier = Modifier.size(if (compact) 20.dp else 22.dp))
         Box(Modifier.weight(1f)) {
             if (value.isEmpty()) Text("Find a card by name", color = c.muted, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             BasicTextField(
@@ -140,7 +201,11 @@ private fun LocationPicker(s: CollectionState, onPick: (Long) -> Unit) {
     val c = Ink.colors
     var open by remember { mutableStateOf(false) }
     Box {
-        Row(
+        if (isCompact()) PillChip(
+            "In: ${s.locationName}", false, { open = true },
+            leading = { Icon(Icons.Outlined.Inventory2, null, tint = c.text, modifier = Modifier.size(18.dp)) },
+            trailing = { Icon(Icons.Outlined.KeyboardArrowDown, null, tint = c.text, modifier = Modifier.size(16.dp)) },
+        ) else Row(
             Modifier.height(52.dp).clip(RoundedCornerShape(26.dp)).background(c.surface)
                 .border(2.dp, c.border, RoundedCornerShape(26.dp)).clickable { open = true }.padding(horizontal = 18.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -200,6 +265,36 @@ private fun CardTile(owned: OwnedCard, onClick: () -> Unit) {
         }
         Column(Modifier.fillMaxWidth().background(c.surface).padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 9.dp)) {
             Text(card.name, color = c.text, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(card.version, color = c.muted, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** Phone grid tile: ink-framed art with the count badges on it, the name underneath. */
+@Composable
+private fun CardTilePhone(owned: OwnedCard, onClick: () -> Unit) {
+    val c = Ink.colors
+    val card = owned.card
+    val ink = InkColor.of(card.ink)
+    Column(
+        Modifier.fillMaxWidth().clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = "${card.fullName}, ${plural(owned.qty, "copy", "copies")}" },
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box(Modifier.fillMaxWidth().aspectRatio(5f / 7f).clip(RoundedCornerShape(10.dp)).border(2.dp, ink.color, RoundedCornerShape(10.dp))) {
+            CardArt(card, Modifier.fillMaxSize(), ArtSize.Small)
+            CostGem(card.cost, ink, 24.dp, Modifier.align(Alignment.TopStart).padding(5.dp))
+            Column(Modifier.align(Alignment.TopEnd).padding(5.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text("×${owned.qty}", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.height(22.dp).clip(RoundedCornerShape(11.dp)).background(Color(0xFF1B1A3A)).padding(horizontal = 7.dp).wrapContentHeight(Alignment.CenterVertically))
+                if (owned.foilQty > 0) Box(
+                    Modifier.size(22.dp).clip(RoundedCornerShape(11.dp)).background(c.warnBg).border(1.dp, c.accent, RoundedCornerShape(11.dp)),
+                    Alignment.Center,
+                ) { Icon(Icons.Outlined.AutoAwesome, "Foil", tint = c.accent, modifier = Modifier.size(12.dp)) }
+            }
+        }
+        Column(Modifier.padding(horizontal = 2.dp)) {
+            Text(card.name, color = c.text, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(card.version, color = c.muted, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }

@@ -49,6 +49,7 @@ android {
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        unitTests.isReturnDefaultValues = true
     }
 
     lint {
@@ -56,6 +57,10 @@ android {
         warningsAsErrors = false
         checkReleaseBuilds = true
     }
+
+    // Room's exported schemas, for the migration test (Robolectric reads them as assets). Debug builds
+    // only, so they do not ship in the release APK.
+    sourceSets.getByName("debug").assets.srcDir("$projectDir/schemas")
 
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -97,12 +102,18 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.avif)
+    implementation(libs.noise)
+    implementation(libs.bouncycastle)
+    implementation(libs.zxing)
+    implementation(libs.mlkit.barcode)
     implementation(libs.okhttp)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
+    testImplementation(libs.room.testing)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
