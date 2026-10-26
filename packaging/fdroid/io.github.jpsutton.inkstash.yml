@@ -1,0 +1,28 @@
+Categories:
+  - Games
+License: MIT
+WebSite: https://github.com/jpsutton/inkstash
+SourceCode: https://github.com/jpsutton/inkstash
+IssueTracker: https://github.com/jpsutton/inkstash/issues
+Changelog: https://github.com/jpsutton/inkstash/releases
+
+AutoName: inkstash
+Name: inkstash
+Summary: Track your Disney Lorcana card collection by taking photos
+Description: |-
+  inkstash is a collection tracker for Disney Lorcana, made for tablets and for kids to use.
+
+  Lay up to nine cards on a table, take one photo, and inkstash reads the small collector
+  number on each card and finds it in its card database. Check the matches, then add the
+  cards to your collection.
+
+  Keep cards in the main collection, in pools such as binders and boxes, or in temp sets for
+  a deck: a temp set borrows cards, and dissolving it sends every card back where it came from.
+  Save a backup of your collection to a file at any time.
+
+  Card data and images come from Lorcast (lorcast.com). Card text is read on the tablet; no
+  photo leaves it.
+
+  Portions of the materials used are property of Disney/Ravensburger. Used under Ravensburger's
+  Community Code Policy. inkstash is not published, endorsed, or specifically approved by Disney
+  or Ravensburger.
