@@ -22,6 +22,8 @@ class InkstashApp : Application(), SingletonImageLoader.Factory {
             runCatching { container.cards.importBundled(this@InkstashApp) }
             // A collection from before the operation log goes into it once, so a mesh can share it.
             runCatching { container.sync.baseline() }
+            // Rejoin the mesh, if this device is in one.
+            runCatching { container.mesh.start() }
         }
     }
 

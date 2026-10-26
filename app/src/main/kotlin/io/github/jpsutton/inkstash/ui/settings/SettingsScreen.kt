@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.Icon
@@ -60,7 +61,7 @@ const val COMMUNITY_CODE_NOTICE =
         "by Disney or Ravensburger."
 
 @Composable
-fun SettingsScreen(vm: SettingsViewModel, theme: ThemeMode, onTheme: (ThemeMode) -> Unit) {
+fun SettingsScreen(vm: SettingsViewModel, theme: ThemeMode, onTheme: (ThemeMode) -> Unit, onMesh: () -> Unit) {
     val s by vm.state.collectAsStateWithLifecycle()
     val c = Ink.colors
     val ctx = LocalContext.current
@@ -127,6 +128,9 @@ fun SettingsScreen(vm: SettingsViewModel, theme: ThemeMode, onTheme: (ThemeMode)
                 }
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                Section("Sync with other devices", "Keep this collection the same on your other devices, over Wi-Fi", Icons.Outlined.Sync) {
+                    BigButton("Set up or manage", onMesh, icon = Icons.Outlined.Sync, modifier = Modifier.fillMaxWidth())
+                }
                 Section("Backup", "Save your collection to a file so you never lose it") {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         BigButton("Save a backup", { save.launch("inkstash-backup.json") }, icon = Icons.Outlined.FileDownload, modifier = Modifier.weight(1f))

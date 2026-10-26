@@ -24,7 +24,7 @@ Never launch an emulator or install on a device to check your work. Use:
 ## Conventions
 
 - Manual DI: `AppContainer`, no Hilt. ViewModels are built with the `vm { ... }` helper in `ui/Support.kt`.
-- Every collection change goes through `CollectionRepository`, one Room transaction per operation.
+- Every collection change goes through `CollectionRepository`, one Room transaction per operation. It records the change as operations in the log (`SyncStore`) and applies them through the same code that applies other devices' operations (`docs/mesh.md`). Quantity changes are deltas, places are soft-deleted, and a place is named by its `uid`, not its local `id`.
 - A temp-set holding stores its borrowed-from place in `sourceLocationId`. `0` means none (not NULL, so the unique index catches duplicates).
 - UI is for a child on a tablet: big touch targets (44 dp or more), plain words, no jargon. Colours and sizes come from the mockups; tokens are in `ui/Theme.kt`.
 - The OCR constants in `CardLocator` (`HEIGHT_PER_TEXT` and the footer insets) are estimates. Tune them on photos of real 3x3 and 4x3 grids.

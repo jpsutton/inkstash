@@ -5,6 +5,8 @@ import io.github.jpsutton.inkstash.data.CardRepository
 import io.github.jpsutton.inkstash.data.CollectionRepository
 import io.github.jpsutton.inkstash.data.SyncStore
 import io.github.jpsutton.inkstash.data.InkstashDatabase
+import io.github.jpsutton.inkstash.mesh.MeshIdentity
+import io.github.jpsutton.inkstash.mesh.MeshNode
 import io.github.jpsutton.inkstash.scan.CardMatcher
 import io.github.jpsutton.inkstash.scan.NameAnchorLocator
 import io.github.jpsutton.inkstash.scan.OcrEngine
@@ -29,6 +31,11 @@ class AppContainer(val context: Context) {
     }
     val sync = SyncStore(db, nodeId)
     val collection = CollectionRepository(db, sync)
+
+    /** For work that must outlive a screen (joining a mesh, syncing). */
+    val appScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
+    val meshIdentity = MeshIdentity(context.getSharedPreferences("inkstash_mesh", Context.MODE_PRIVATE), nodeId, android.os.Build.MODEL ?: "My device")
+    val mesh = MeshNode(meshIdentity, db, sync, collection, appScope)
     val ocr by lazy { OcrEngine() }
 
     /** Photo scan result waiting for the review screen. */
