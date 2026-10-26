@@ -35,6 +35,26 @@ class CardRepositoryTest : DbTestBase() {
         assertEquals("Super rare", song.rarity)
         assertEquals("", song.version)
         assertNull(song.imageSmall)
+        // Prices: present as strings, or absent.
+        assertEquals(0.12, ariel.priceUsd!!, 1e-9)
+        assertNull(ariel.priceFoilUsd)
+        assertNull(song.priceUsd)
+    }
+
+    @Test fun foilOnlyAndBadPricesParse() = runBlocking {
+        val r = cards()
+        r.importJson(
+            """[{"id":"e","name":"Elsa","version":"Enchanted","cost":8,"inkwell":true,"ink":"Amethyst","type":["Character"],
+              "rarity":"Enchanted","collector_number":"207","set":{"id":"s","code":"1","name":"S"},"prices":{"usd":null,"usd_foil":"115.39"}},
+             {"id":"f","name":"Fish","cost":1,"inkwell":false,"ink":"Amber","type":["Character"],"rarity":"Common","collector_number":"1",
+              "set":{"id":"s","code":"1","name":"S"},"prices":{"usd":"n/a","usd_foil":""}}]""".trimIndent(),
+        )
+        val e = db.cards().byId("e")!!
+        assertNull(e.priceUsd)
+        assertEquals(115.39, e.priceFoilUsd!!, 1e-9)
+        val f = db.cards().byId("f")!!
+        assertNull(f.priceUsd)
+        assertNull(f.priceFoilUsd)
     }
 
     @Test fun importIsAnUpsertSoOwnedCardsSurvive() = runBlocking {
@@ -60,9 +80,14 @@ class CardRepositoryTest : DbTestBase() {
         assertTrue(r.search("   ").isEmpty())
     }
 
-    @Test fun bundledImportOnlyRunsOnAnEmptyTable() = runBlocking {
+    @Test fun bundledImportRunsOnceAndThenLeavesTheDatabaseAlone() = runBlocking {
         val r = cards()
-        // No cards.json in the unit-test assets: nothing to import, and no crash.
-        assertEquals(0, r.importBundledIfEmpty(ApplicationProvider.getApplicationContext()))
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        // Whether the snapshot asset exists depends on the checkout (it is gitignored). With it, the
+        // table is not empty here (the base class seeds 3 cards) but has no prices flag yet: it imports
+        // once. Without it, nothing is imported, ever.
+        val first = r.importBundled(context)
+        assertTrue(first == 0 || first > 3)
+        assertEquals(0, r.importBundled(context).let { if (first == 0) 0 else it })
     }
 }

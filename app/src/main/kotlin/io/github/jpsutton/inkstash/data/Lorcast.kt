@@ -24,6 +24,10 @@ data class LorcastImages(val digital: LorcastImageSet? = null)
 @Serializable
 data class LorcastImageSet(val small: String? = null, val normal: String? = null, val large: String? = null)
 
+/** Lorcast's price estimates in US dollars, as decimal strings (TCGplayer market prices). Either may be null. */
+@Serializable
+data class LorcastPrices(val usd: String? = null, @SerialName("usd_foil") val usdFoil: String? = null)
+
 @Serializable
 data class LorcastCard(
     val id: String,
@@ -38,6 +42,7 @@ data class LorcastCard(
     val type: JsonElement? = null,
     val rarity: String? = null,
     @SerialName("image_uris") val imageUris: LorcastImages? = null,
+    val prices: LorcastPrices? = null,
 ) {
     fun toCard(): Card = Card(
         id = id,
@@ -54,6 +59,8 @@ data class LorcastCard(
         imageSmall = imageUris?.digital?.small,
         imageNormal = imageUris?.digital?.normal,
         imageLarge = imageUris?.digital?.large,
+        priceUsd = prices?.usd?.toDoubleOrNull(),
+        priceFoilUsd = prices?.usdFoil?.toDoubleOrNull(),
     )
 
     private fun typeText(t: JsonElement?): String = when (t) {

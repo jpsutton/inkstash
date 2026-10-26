@@ -23,7 +23,7 @@ abstract class DbTestBase {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, InkstashDatabase::class.java)
             .addCallback(InkstashDatabase.seedCallback).allowMainThreadQueries().build()
-        repo = CollectionRepository(db, now = { 1_000 })
+        repo = CollectionRepository(db, SyncStore(db, "test-node", clock = { 1_000 }), now = { 1_000 })
         kotlinx.coroutines.runBlocking {
             db.cards().upsertAll(listOf(card("a", "Anna", num = "1"), card("b", "Belle", num = "2"), card("c", "Cruella", num = "3")))
         }

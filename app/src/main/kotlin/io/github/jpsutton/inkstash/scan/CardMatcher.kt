@@ -69,7 +69,10 @@ class CardMatcher(allCards: List<Card>) {
         private const val NAME_THRESHOLD = 0.8
         private val NONE = MatchResult(MatchLevel.NONE, null, 0.0, emptyList(), byNumber = false)
 
-        fun normalize(s: String): String = s.lowercase().filter { it.isLetterOrDigit() }
+        /** Lower case, letters and digits only, with the digits OCR confuses for letters (0, 1) turned back. */
+        fun normalize(s: String): String = s.lowercase().filter { it.isLetterOrDigit() }.map {
+            when (it) { '0' -> 'o'; '1' -> 'l'; else -> it }
+        }.joinToString("")
 
         /** 1 - Levenshtein distance / longer length, on normalized strings. */
         fun similarity(a: String, b: String): Double {
