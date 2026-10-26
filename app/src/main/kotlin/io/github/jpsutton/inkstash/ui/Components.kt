@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -311,7 +312,7 @@ fun ScreenWithRail(selected: Tab?, onTab: (Tab) -> Unit, content: @Composable ()
         }
         return
     }
-    androidx.compose.foundation.layout.Row(Modifier.fillMaxSize().background(Ink.colors.bg)) {
+    androidx.compose.foundation.layout.Row(Modifier.fillMaxSize().background(Ink.colors.bg).safeDrawingPadding()) {
         NavRail(selected, onTab)
         Box(Modifier.weight(1f).fillMaxHeight()) { content() }
     }
@@ -330,4 +331,29 @@ fun Modifier.dashedBorder(color: Color, radius: Dp, width: Dp = 2.dp): Modifier 
         cornerRadius = CornerRadius(radius.toPx()),
         style = Stroke(w, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10.dp.toPx(), 7.dp.toPx()))),
     )
+}
+
+/** A single-line text box in the app's style (56 dp tall, big text). */
+@Composable
+fun InkTextField(
+    value: String,
+    onChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    keyboardType: androidx.compose.ui.text.input.KeyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
+) {
+    val c = Ink.colors
+    Box(
+        modifier.height(56.dp).clip(RoundedCornerShape(16.dp)).background(c.surface2)
+            .border(2.dp, c.border, RoundedCornerShape(16.dp)).padding(horizontal = 16.dp),
+        Alignment.CenterStart,
+    ) {
+        if (value.isEmpty()) Text(placeholder, color = c.muted, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+        androidx.compose.foundation.text.BasicTextField(
+            value, onChange, singleLine = true, cursorBrush = androidx.compose.ui.graphics.SolidColor(c.text),
+            textStyle = androidx.compose.ui.text.TextStyle(color = c.text, fontSize = 17.sp, fontWeight = FontWeight.Bold, fontFamily = Nunito),
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboardType, autoCorrectEnabled = false),
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
 }

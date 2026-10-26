@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -93,7 +94,7 @@ fun ReviewScreen(vm: ReviewViewModel, onRetake: () -> Unit, onDone: () -> Unit) 
     var searchFor by remember { mutableStateOf<SearchTarget?>(null) }
 
     if (isCompact()) ReviewPhone(s, vm, onRetake, onDone, onFind = { searchFor = it })
-    else Column(Modifier.fillMaxSize().background(c.bg)) {
+    else Column(Modifier.fillMaxSize().background(c.bg).safeDrawingPadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 22.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(
                 Modifier.clip(RoundedCornerShape(26.dp)).clickable { vm.discard(); onRetake() }.height(52.dp).padding(end = 16.dp),

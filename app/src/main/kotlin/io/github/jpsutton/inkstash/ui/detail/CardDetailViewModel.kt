@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.jpsutton.inkstash.data.Card
 import io.github.jpsutton.inkstash.data.CardRepository
+import io.github.jpsutton.inkstash.data.CardValue
 import io.github.jpsutton.inkstash.data.CollectionRepository
 import io.github.jpsutton.inkstash.data.Holding
 import io.github.jpsutton.inkstash.data.Location
@@ -23,6 +24,7 @@ data class CardDetailState(
     val locations: List<Location> = emptyList(),
 ) {
     val total: Int get() = rows.sumOf { it.holding.quantity }
+    val value: CardValue? get() = card?.let { CardValue.of(it, rows.map { r -> r.holding }) }
 }
 
 class CardDetailViewModel(

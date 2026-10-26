@@ -22,8 +22,8 @@ data class CardCandidate(val footer: FooterInfo?, val rect: Rect, val nameCandid
  * several cards in a row/column, else it is estimated from the footer's text height.
  */
 object CardLocator {
-    /** Card height / footer text height. Tuned on real photos; Lorcana footer text is ~2.3 mm of 88 mm. */
-    const val HEIGHT_PER_TEXT = 36f
+    /** Card height / footer line height. From a real photo (Pluto - Rescue Dog): 700 px card, ~12 px footer line. */
+    const val HEIGHT_PER_TEXT = 55f
     const val ASPECT = 63f / 88f // width / height of a Lorcana card
     private const val FOOTER_INSET_X = 0.06f // footer left edge, as a fraction of card width from the card's left
     private const val FOOTER_INSET_Y = 0.035f // footer bottom, as a fraction of card height from the card's bottom
@@ -31,8 +31,9 @@ object CardLocator {
     private class Anchor(val line: OcrLine, val info: FooterInfo)
 
     fun locate(lines: List<OcrLine>, imageWidth: Int, imageHeight: Int): List<CardCandidate> {
-        val anchors = lines.mapNotNull { l -> CollectorLineParser.parse(l.text)?.let { Anchor(l, it) } }
-        if (anchors.isEmpty()) return emptyList()
+        val parsed = lines.mapNotNull { l -> CollectorLineParser.parse(l.text)?.let { Anchor(l, it) } }
+        if (parsed.isEmpty()) return emptyList()
+        val anchors = dedupe(parsed)
 
         val textHeight = anchors.map { it.line.height }.sorted()[anchors.size / 2].coerceAtLeast(1)
         var cardH = textHeight * HEIGHT_PER_TEXT
@@ -64,11 +65,29 @@ object CardLocator {
     }
 
     /**
+     * The same footer read twice (whole photo and an enlarged tile, or one footer cut in two) gives
+     * two anchors a few pixels apart. Keep the first of any pair with the same number and set that
+     * lie within a card's width of each other.
+     */
+    private fun dedupe(anchors: List<Anchor>): List<Anchor> {
+        val kept = mutableListOf<Anchor>()
+        for (a in anchors) {
+            val reach = a.line.height * HEIGHT_PER_TEXT * ASPECT
+            val twin = kept.any {
+                it.info.collectorNumber == a.info.collectorNumber && it.info.setCode == a.info.setCode &&
+                    kotlin.math.abs(it.line.left - a.line.left) < reach && kotlin.math.abs(it.line.top - a.line.top) < reach
+            }
+            if (!twin) kept += a
+        }
+        return kept
+    }
+
+    /**
      * Smallest gap between distinct positions that fits the expected card size (within 0.6x–1.6x),
      * or null when all positions are in one row/column. Positions of one column differ by a few
      * pixels, so those are grouped first.
      */
-    private fun pitch(positions: List<Int>, expected: Float): Float? {
+    internal fun pitch(positions: List<Int>, expected: Float): Float? {
         val sorted = positions.sorted()
         val groups = mutableListOf(mutableListOf(sorted.first()))
         for (p in sorted.drop(1)) {

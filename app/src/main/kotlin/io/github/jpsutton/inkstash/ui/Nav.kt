@@ -17,6 +17,9 @@ import io.github.jpsutton.inkstash.ui.places.PlacesScreen
 import io.github.jpsutton.inkstash.ui.places.PlacesViewModel
 import io.github.jpsutton.inkstash.ui.places.TempSetScreen
 import io.github.jpsutton.inkstash.ui.places.TempSetViewModel
+import io.github.jpsutton.inkstash.ui.mesh.MeshScreen
+import io.github.jpsutton.inkstash.ui.mesh.MeshViewModel
+import io.github.jpsutton.inkstash.ui.mesh.QrScanScreen
 import io.github.jpsutton.inkstash.ui.settings.SettingsScreen
 import io.github.jpsutton.inkstash.ui.settings.SettingsViewModel
 import androidx.compose.runtime.collectAsState
@@ -78,8 +81,27 @@ fun InkstashRoot(app: AppContainer) {
             composable("settings") {
                 val theme by app.theme.collectAsState()
                 ScreenWithRail(Tab.Settings, { nav.navigate(it.route) }) {
-                    SettingsScreen(vm { SettingsViewModel(app.cards, app.collection) }, theme, app::setTheme)
+                    SettingsScreen(vm { SettingsViewModel(app.cards, app.collection) }, theme, app::setTheme, onMesh = { nav.navigate("mesh") })
                 }
+            }
+            composable("mesh") {
+                ScreenWithRail(Tab.Settings, { nav.navigate(it.route) }) {
+                    MeshScreen(
+                        vm { MeshViewModel(app.mesh, app.appScope) },
+                        onBack = { nav.popBackStack() },
+                        onScanCode = { nav.navigate("mesh/scan") },
+                    )
+                }
+            }
+            composable("mesh/scan") {
+                val meshVm = vm { MeshViewModel(app.mesh, app.appScope) }
+                QrScanScreen(
+                    onInvite = { invite ->
+                        meshVm.join(invite)
+                        nav.popBackStack() // back to the mesh screen, which shows the progress
+                    },
+                    onClose = { nav.popBackStack() },
+                )
             }
         }
     }

@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.Icon
@@ -68,7 +69,7 @@ const val COMMUNITY_CODE_NOTICE =
         "by Disney or Ravensburger."
 
 @Composable
-fun SettingsScreen(vm: SettingsViewModel, theme: ThemeMode, onTheme: (ThemeMode) -> Unit) {
+fun SettingsScreen(vm: SettingsViewModel, theme: ThemeMode, onTheme: (ThemeMode) -> Unit, onMesh: () -> Unit) {
     val s by vm.state.collectAsStateWithLifecycle()
     val ctx = LocalContext.current
     val uri = LocalUriHandler.current
@@ -98,6 +99,7 @@ fun SettingsScreen(vm: SettingsViewModel, theme: ThemeMode, onTheme: (ThemeMode)
         Title("Settings")
         LookSection(theme, onTheme)
         DatabaseSection(s, vm)
+        MeshSection(onMesh)
         BackupSection(onSave, onLoad)
         AboutSection(uri::openUri)
     } else Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 32.dp, vertical = 28.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -108,6 +110,7 @@ fun SettingsScreen(vm: SettingsViewModel, theme: ThemeMode, onTheme: (ThemeMode)
                 DatabaseSection(s, vm)
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                MeshSection(onMesh)
                 BackupSection(onSave, onLoad)
                 AboutSection(uri::openUri)
             }
@@ -165,6 +168,13 @@ private fun DatabaseSection(s: SettingsState, vm: SettingsViewModel) {
         BigButton(if (s.updating) "Stop update" else "Update card database", vm::toggleUpdate, icon = if (s.updating) Icons.Outlined.Stop else Icons.Outlined.Refresh,
             style = if (s.updating) ButtonStyle.Outlined else ButtonStyle.Primary, modifier = Modifier.fillMaxWidth())
         s.message?.let { Muted(it, size = 14) }
+    }
+}
+
+@Composable
+private fun MeshSection(onMesh: () -> Unit) {
+    Section("Sync with other devices", "Keep this collection the same on your other devices, over Wi-Fi", Icons.Outlined.Sync) {
+        BigButton("Set up or manage", onMesh, icon = Icons.Outlined.Sync, style = if (isCompact()) ButtonStyle.Accent else ButtonStyle.Outlined, modifier = Modifier.fillMaxWidth())
     }
 }
 

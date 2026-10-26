@@ -22,8 +22,12 @@ class BackupTest : DbTestBase() {
         val skipped = repo.restore(Backup.decode(json))
         assertEquals(0, skipped)
         val after = repo.snapshot()
-        fun norm(d: BackupData) = d.locations.map { Triple(it.id, it.name, it.kind) }.sortedBy { it.first } to
-            d.holdings.map { listOf(it.cardId, it.locationId, it.foil, it.quantity, it.sourceLocationId) }.sortedBy { it.toString() }
+        // Places come back under new ids (and uids), so compare by name; copies by card and place name.
+        fun norm(d: BackupData): Pair<List<Pair<String, LocationKind>>, List<List<Any>>> {
+            val names = d.locations.associate { it.id to it.name }
+            return d.locations.map { it.name to it.kind }.sortedBy { it.first } to
+                d.holdings.map { listOf(it.cardId, names[it.locationId]!!, it.foil, it.quantity, names[it.sourceLocationId] ?: "") }.sortedBy { it.toString() }
+        }
         assertEquals(norm(before), norm(after))
         assertEquals(5, total())
     }

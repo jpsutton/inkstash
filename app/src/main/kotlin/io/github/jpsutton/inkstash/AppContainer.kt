@@ -3,11 +3,16 @@ package io.github.jpsutton.inkstash
 import android.content.Context
 import io.github.jpsutton.inkstash.data.CardRepository
 import io.github.jpsutton.inkstash.data.CollectionRepository
+import io.github.jpsutton.inkstash.data.SyncStore
 import io.github.jpsutton.inkstash.data.InkstashDatabase
+import io.github.jpsutton.inkstash.mesh.MeshIdentity
+import io.github.jpsutton.inkstash.mesh.MeshNode
 import io.github.jpsutton.inkstash.scan.CardMatcher
+import io.github.jpsutton.inkstash.scan.NameAnchorLocator
 import io.github.jpsutton.inkstash.scan.OcrEngine
 import io.github.jpsutton.inkstash.scan.ScanPipeline
 import io.github.jpsutton.inkstash.scan.ScanRow
+import io.github.jpsutton.inkstash.scan.TiledTextReader
 import io.github.jpsutton.inkstash.ui.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +25,17 @@ class AppContainer(val context: Context) {
 
     val db: InkstashDatabase = InkstashDatabase.create(context)
     val cards = CardRepository(db, prefs, http)
-    val collection = CollectionRepository(db)
+    /** This install's id in the operation log (and in a mesh). Random, made once. */
+    val nodeId: String = prefs.getString(KEY_NODE_ID, null) ?: java.util.UUID.randomUUID().toString().also {
+        prefs.edit().putString(KEY_NODE_ID, it).apply()
+    }
+    val sync = SyncStore(db, nodeId)
+    val collection = CollectionRepository(db, sync)
+
+    /** For work that must outlive a screen (joining a mesh, syncing). */
+    val appScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
+    val meshIdentity = MeshIdentity(context.getSharedPreferences("inkstash_mesh", Context.MODE_PRIVATE), nodeId, android.os.Build.MODEL ?: "My device")
+    val mesh = MeshNode(meshIdentity, db, sync, collection, appScope)
     val ocr by lazy { OcrEngine() }
 
     /** Photo scan result waiting for the review screen. */
@@ -34,10 +49,14 @@ class AppContainer(val context: Context) {
         _theme.value = mode
     }
 
-    suspend fun newScanPipeline(): ScanPipeline = ScanPipeline(ocr, CardMatcher(db.cards().all()))
+    suspend fun newScanPipeline(): ScanPipeline {
+        val cards = db.cards().all()
+        return ScanPipeline(TiledTextReader(ocr), CardMatcher(cards), NameAnchorLocator(cards.map { it.name }))
+    }
 
     companion object {
         private const val KEY_THEME = "theme"
+        private const val KEY_NODE_ID = "node_id"
     }
 }
 

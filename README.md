@@ -6,6 +6,7 @@ A Disney Lorcana collection tracker for Android tablets and phones, made for kid
 - **Collection** with filters for ink, set, rarity, type and place, plus name search.
 - **Places:** the General collection, pools (boxes and binders) and temp sets. A temp set borrows cards for a deck. Dissolve it and every card goes back where it came from.
 - **Backup** your collection to a file, and load it back after a reinstall.
+- **Sync** the collection across your devices over Wi-Fi, peer to peer with no cloud, joining by QR code or a typed passphrase. See [docs/mesh.md](docs/mesh.md).
 - Card data and images come from [Lorcast](https://lorcast.com). The app ships a snapshot of the card database and can update it from Settings.
 
 ## Install
