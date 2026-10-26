@@ -1,0 +1,11 @@
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+.kotlin/
+.claude/worktrees/
+app/src/main/assets/cards.json
+*.jks
+*.p12
+*.keystore
