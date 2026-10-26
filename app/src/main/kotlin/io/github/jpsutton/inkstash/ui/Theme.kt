@@ -26,7 +26,7 @@ enum class ThemeMode {
     }
 }
 
-/** Design tokens from the mockups (Screens.html) that Material's scheme has no slot for. */
+/** Design tokens from the mockups (Screens.html, Screens.v002.html) that Material's scheme has no slot for. */
 data class InkColors(
     val bg: Color, val surface: Color, val surface2: Color, val text: Color, val muted: Color,
     val border: Color, val divider: Color, val dash: Color, val rail: Color, val rail2: Color, val railText: Color,
@@ -34,7 +34,7 @@ data class InkColors(
     val accent: Color, val onAccent: Color, val danger: Color, val onDanger: Color,
     val scrim: Color, val shadow: Color,
     val okBg: Color, val okFg: Color, val warnBg: Color, val warnFg: Color,
-    val badBg: Color, val badFg: Color, val infoBg: Color, val infoFg: Color,
+    val badBg: Color, val badFg: Color, val infoBg: Color, val infoFg: Color, val infoBorder: Color,
 )
 
 private val Light = InkColors(
@@ -45,7 +45,7 @@ private val Light = InkColors(
     accent = Color(0xFFF2B33D), onAccent = Color(0xFF1B1A3A), danger = Color(0xFFB3261E), onDanger = Color(0xFFFFFFFF),
     scrim = Color(0x731B1A3A), shadow = Color(0x401E1B4B),
     okBg = Color(0xFFE4F4EA), okFg = Color(0xFF1E6B43), warnBg = Color(0xFFFDF3DC), warnFg = Color(0xFF7A5300),
-    badBg = Color(0xFFFBE6E6), badFg = Color(0xFF9B2C2C), infoBg = Color(0xFFE3EEFA), infoFg = Color(0xFF1D4A80),
+    badBg = Color(0xFFFBE6E6), badFg = Color(0xFF9B2C2C), infoBg = Color(0xFFE3EEFA), infoFg = Color(0xFF1D4A80), infoBorder = Color(0xFFC7DBF3),
 )
 
 private val Dark = InkColors(
@@ -56,7 +56,7 @@ private val Dark = InkColors(
     accent = Color(0xFFF2B33D), onAccent = Color(0xFF1B1A3A), danger = Color(0xFFFF8A80), onDanger = Color(0xFF2A0A08),
     scrim = Color(0x99000000), shadow = Color(0x80000000),
     okBg = Color(0xFF17352A), okFg = Color(0xFF8FD9B0), warnBg = Color(0xFF3A2E12), warnFg = Color(0xFFF5CF7A),
-    badBg = Color(0xFF3D1D20), badFg = Color(0xFFF4A3A3), infoBg = Color(0xFF172B45), infoFg = Color(0xFF9CC4F2),
+    badBg = Color(0xFF3D1D20), badFg = Color(0xFFF4A3A3), infoBg = Color(0xFF172B45), infoFg = Color(0xFF9CC4F2), infoBorder = Color(0xFF2C4A70),
 )
 
 val LocalInk = staticCompositionLocalOf { Light }

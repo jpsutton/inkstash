@@ -1,6 +1,8 @@
 package io.github.jpsutton.inkstash.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navArgument
@@ -24,54 +26,60 @@ import io.github.jpsutton.inkstash.ui.scan.ScanScreen
 import io.github.jpsutton.inkstash.ui.scan.ScanViewModel
 import androidx.compose.runtime.getValue
 
+/** Screens narrower than this (smallest side, in dp) get the phone layouts. */
+private const val PHONE_MAX_WIDTH_DP = 600
+
 @Composable
 fun InkstashRoot(app: AppContainer) {
     val nav = rememberNavController()
-    NavHost(nav, startDestination = "collection") {
-        composable("collection") {
-            ScreenWithRail(Tab.Collection, { nav.navigate(it.route) }) {
-                CollectionScreen(vm { CollectionViewModel(app.collection, app.cards) }, onCard = { nav.navigate("card/$it") }, onScan = { nav.navigate("scan") })
+    val phone = LocalConfiguration.current.smallestScreenWidthDp < PHONE_MAX_WIDTH_DP
+    CompositionLocalProvider(LocalCompact provides phone) {
+        NavHost(nav, startDestination = "collection") {
+            composable("collection") {
+                ScreenWithRail(Tab.Collection, { nav.navigate(it.route) }) {
+                    CollectionScreen(vm { CollectionViewModel(app.collection, app.cards) }, onCard = { nav.navigate("card/$it") }, onScan = { nav.navigate("scan") })
+                }
             }
-        }
-        composable("card/{id}", listOf(navArgument("id") { type = NavType.StringType })) { entry ->
-            val id = entry.arguments!!.getString("id")!!
-            ScreenWithRail(Tab.Collection, { nav.navigate(it.route) }) {
-                CardDetailScreen(vm("card-$id") { CardDetailViewModel(id, app.cards, app.collection) }, onBack = { nav.popBackStack() })
+            composable("card/{id}", listOf(navArgument("id") { type = NavType.StringType })) { entry ->
+                val id = entry.arguments!!.getString("id")!!
+                ScreenWithRail(Tab.Collection, { nav.navigate(it.route) }) {
+                    CardDetailScreen(vm("card-$id") { CardDetailViewModel(id, app.cards, app.collection) }, onBack = { nav.popBackStack() })
+                }
             }
-        }
-        composable("scan") {
-            ScanScreen(
-                vm { ScanViewModel(app) },
-                onClose = { nav.popBackStack() },
-                onScanned = { nav.navigate("review") },
-            )
-        }
-        composable("review") {
-            ReviewScreen(
-                vm { ReviewViewModel(app) },
-                onRetake = { nav.popBackStack() },
-                onDone = { nav.popBackStack("collection", inclusive = false) },
-            )
-        }
-        composable("places") {
-            ScreenWithRail(Tab.Places, { nav.navigate(it.route) }) {
-                PlacesScreen(
-                    vm { PlacesViewModel(app.collection) },
-                    onGeneral = { nav.navigate("collection") },
-                    onTempSet = { nav.navigate("tempset/$it") },
+            composable("scan") {
+                ScanScreen(
+                    vm { ScanViewModel(app) },
+                    onClose = { nav.popBackStack() },
+                    onScanned = { nav.navigate("review") },
                 )
             }
-        }
-        composable("tempset/{id}", listOf(navArgument("id") { type = NavType.LongType })) { entry ->
-            val id = entry.arguments!!.getLong("id")
-            ScreenWithRail(Tab.Places, { nav.navigate(it.route) }) {
-                TempSetScreen(vm("tempset-$id") { TempSetViewModel(id, app.collection) }, onBack = { nav.popBackStack() })
+            composable("review") {
+                ReviewScreen(
+                    vm { ReviewViewModel(app) },
+                    onRetake = { nav.popBackStack() },
+                    onDone = { nav.popBackStack("collection", inclusive = false) },
+                )
             }
-        }
-        composable("settings") {
-            val theme by app.theme.collectAsState()
-            ScreenWithRail(Tab.Settings, { nav.navigate(it.route) }) {
-                SettingsScreen(vm { SettingsViewModel(app.cards, app.collection) }, theme, app::setTheme)
+            composable("places") {
+                ScreenWithRail(Tab.Places, { nav.navigate(it.route) }) {
+                    PlacesScreen(
+                        vm { PlacesViewModel(app.collection) },
+                        onGeneral = { nav.navigate("collection") },
+                        onTempSet = { nav.navigate("tempset/$it") },
+                    )
+                }
+            }
+            composable("tempset/{id}", listOf(navArgument("id") { type = NavType.LongType })) { entry ->
+                val id = entry.arguments!!.getLong("id")
+                ScreenWithRail(Tab.Places, { nav.navigate(it.route) }) {
+                    TempSetScreen(vm("tempset-$id") { TempSetViewModel(id, app.collection) }, onBack = { nav.popBackStack() })
+                }
+            }
+            composable("settings") {
+                val theme by app.theme.collectAsState()
+                ScreenWithRail(Tab.Settings, { nav.navigate(it.route) }) {
+                    SettingsScreen(vm { SettingsViewModel(app.cards, app.collection) }, theme, app::setTheme)
+                }
             }
         }
     }
