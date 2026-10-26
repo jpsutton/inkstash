@@ -1,0 +1,50 @@
+# Build, test and lint on pull requests into staging and main. The APK is unsigned here;
+# release.yml signs the artifact of the staging -> main pull request and publishes it without
+# rebuilding. workflow_dispatch runs it on any branch, for testing the build itself.
+name: build
+
+on:
+  pull_request:
+    branches: [main, staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Only the newest head of a pull request matters.
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      # The bundled card snapshot (gitignored), so the app works offline on first launch.
+      - name: Fetch the card snapshot
+        run: scripts/fetch-cards.sh
+      - name: Test, lint and build
+        run: ./gradlew test lint assembleRelease --stacktrace
+      - name: Upload reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reports
+          path: app/build/reports
+          retention-days: 7
+      # Release artifact: only the pull request that can be released (staging -> main).
+      - uses: actions/upload-artifact@v7
+        if: github.event_name == 'workflow_dispatch' || github.base_ref == 'main'
+        with:
+          name: inkstash-android
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
