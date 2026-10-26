@@ -20,7 +20,7 @@ The easiest way to install and update it is inkstash's F-Droid repository, which
 To add the repository by hand, use the address `https://jpsutton.github.io/inkstash/fdroid/repo` and check that its fingerprint is:
 
 ```
-(published with the first release)
+F3A285D2FB80CB9BE09CEE78B13582A051A4BC2F41BAF973F768ABA2ADA57A36
 ```
 
 You can also download `inkstash-<version>.apk` from the [Releases page](https://github.com/jpsutton/inkstash/releases/latest) and install it directly. Android asks you to allow installs from your browser the first time.
