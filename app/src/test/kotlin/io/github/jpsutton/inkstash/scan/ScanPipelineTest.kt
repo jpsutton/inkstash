@@ -19,7 +19,8 @@ class ScanPipelineTest {
 
     private val pluto = card("pluto", "4", "20", "Pluto", "Rescue Dog")
     private val elsa = card("elsa", "1", "42", "Elsa", "Spirit of Winter")
-    private val cards = listOf(pluto, elsa, card("pluto2", "2", "9", "Pluto", "Friendly Pooch"))
+    private val roo = card("roo", "11", "137", "Roo", "Little Helper")
+    private val cards = listOf(pluto, elsa, card("pluto2", "2", "9", "Pluto", "Friendly Pooch"), roo, card("roo2", "6", "23", "Roo", "Littlest Pirate"))
     private val photo = Bitmap.createBitmap(1600, 1200, Bitmap.Config.ARGB_8888)
 
     private fun pipeline(vararg lines: OcrLine) = ScanPipeline(
@@ -74,5 +75,31 @@ class ScanPipelineTest {
     @Test fun singleModePrefersASureMatchOverACloserGuess() = runBlocking {
         val rows = pipeline(footerLine, OcrLine("ELSA", 100, 100, 200, 130)).scan(photo, ScanMode.SINGLE)
         assertEquals(MatchLevel.SURE, rows.single().result.level)
+    }
+
+    @Test fun rooFromThePhoneScanMatchesByItsLooseFooter() = runBlocking {
+        val photo = Bitmap.createBitmap(4080, 3072, Bitmap.Config.ARGB_8888)
+        val lines = arrayOf(
+            OcrLine("ROO", 1133, 1575, 1353, 1689), OcrLine("Little Helper", 1125, 1705, 1480, 1792),
+            OcrLine("137/204 - EN 11", 1057, 2859, 1423, 2938), OcrLine("Jeanne Plounevez", 1133, 2793, 1488, 2850),
+        )
+        val row = pipeline(*lines).scan(photo, ScanMode.SINGLE).single()
+        assertEquals("roo", row.result.card!!.id)
+        assertEquals(MatchLevel.SURE, row.result.level)
+    }
+
+    @Test fun rooByNameAloneWhenTheFooterIsUnreadable() = runBlocking {
+        val photo = Bitmap.createBitmap(4080, 3072, Bitmap.Config.ARGB_8888)
+        val row = pipeline(OcrLine("ROO", 1133, 1575, 1353, 1689), OcrLine("Little Helper", 1125, 1705, 1480, 1792))
+            .scan(photo, ScanMode.SINGLE).single()
+        assertEquals("roo", row.result.card!!.id)
+        assertEquals(MatchLevel.CHECK, row.result.level)
+    }
+
+    @Test fun shortNameInTheWholePhotoFallback() = runBlocking {
+        // No anchor can be placed (names are far apart), but the big text still names the card.
+        val photo = Bitmap.createBitmap(4080, 3072, Bitmap.Config.ARGB_8888)
+        val row = pipeline(OcrLine("ROO", 100, 100, 320, 214), OcrLine("noise", 5, 5, 20, 12)).scan(photo, ScanMode.SINGLE).single()
+        assertEquals("roo", row.result.card!!.id)
     }
 }

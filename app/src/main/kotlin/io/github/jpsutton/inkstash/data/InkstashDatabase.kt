@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 class Converters {
@@ -16,7 +17,7 @@ class Converters {
     fun stringToKind(value: String): LocationKind = LocationKind.valueOf(value)
 }
 
-@Database(entities = [Card::class, Location::class, Holding::class], version = 1, exportSchema = true)
+@Database(entities = [Card::class, Location::class, Holding::class], version = 2, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class InkstashDatabase : RoomDatabase() {
     abstract fun cards(): CardDao
@@ -34,8 +35,17 @@ abstract class InkstashDatabase : RoomDatabase() {
             }
         }
 
+        /** v1 -> v2: estimated prices on cards. They stay null until the bundled snapshot or a sync fills them. */
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE Card ADD COLUMN priceUsd REAL")
+                db.execSQL("ALTER TABLE Card ADD COLUMN priceFoilUsd REAL")
+            }
+        }
+
         fun create(context: Context): InkstashDatabase =
             Room.databaseBuilder(context, InkstashDatabase::class.java, "inkstash.db")
+                .addMigrations(MIGRATION_1_2)
                 .addCallback(seedCallback)
                 .build()
     }

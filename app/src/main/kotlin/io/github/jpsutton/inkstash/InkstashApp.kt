@@ -19,7 +19,7 @@ class InkstashApp : Application(), SingletonImageLoader.Factory {
         container = AppContainer(this)
         // First launch: load the bundled card snapshot so the app works offline.
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            runCatching { container.cards.importBundledIfEmpty(this@InkstashApp) }
+            runCatching { container.cards.importBundled(this@InkstashApp) }
         }
     }
 

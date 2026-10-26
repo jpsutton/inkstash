@@ -38,15 +38,22 @@ class CardRepository(
     fun observe(id: String) = cards.observe(id)
     suspend fun search(query: String): List<Card> = if (query.isBlank()) emptyList() else cards.search(query.trim())
 
-    /** Imports `assets/cards.json` if the card table is empty. Returns the number of cards imported. */
-    suspend fun importBundledIfEmpty(context: Context): Int = withContext(Dispatchers.IO) {
-        if (cards.count() > 0) return@withContext 0
+    /**
+     * Loads the bundled snapshot (`assets/cards.json`): into an empty card table, and once into a
+     * table made before cards had prices, so installed copies get them without a manual update.
+     * Returns the number of cards imported.
+     */
+    suspend fun importBundled(context: Context): Int = withContext(Dispatchers.IO) {
+        val empty = cards.count() == 0
+        if (!empty && prefs.getBoolean(KEY_PRICES_SEEDED, false)) return@withContext 0
         val text = try {
             context.assets.open(ASSET_NAME).bufferedReader().use { it.readText() }
         } catch (_: java.io.FileNotFoundException) {
             return@withContext 0
         }
-        importJson(text)
+        val n = importJson(text)
+        prefs.edit().putBoolean(KEY_PRICES_SEEDED, true).apply()
+        n
     }
 
     suspend fun importJson(text: String): Int {
@@ -87,6 +94,7 @@ class CardRepository(
     companion object {
         const val ASSET_NAME = "cards.json"
         private const val KEY_LAST_SYNC = "cards_last_sync"
+        private const val KEY_PRICES_SEEDED = "bundled_prices_seeded"
     }
 }
 

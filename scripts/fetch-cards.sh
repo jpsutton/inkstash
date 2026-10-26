@@ -30,6 +30,7 @@ done < "$tmp/codes"
 
 # Keep only the fields the app reads.
 jq -s '[.[] | {id, name, version, collector_number, set: {id: .set.id, code: .set.code, name: .set.name},
-               ink, inks, inkwell, cost, type, rarity, image_uris: {digital: .image_uris.digital}}]' \
+               ink, inks, inkwell, cost, type, rarity, image_uris: {digital: .image_uris.digital},
+               prices: {usd: .prices.usd, usd_foil: .prices.usd_foil}}]' \
     "$tmp/cards.ndjson" > "$out"
 echo "$(jq length "$out") cards from $n sets -> $out"

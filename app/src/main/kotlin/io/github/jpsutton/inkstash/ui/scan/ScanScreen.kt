@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
@@ -41,7 +42,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +59,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.jpsutton.inkstash.scan.ScanMode
 import io.github.jpsutton.inkstash.ui.Muted
-import kotlinx.coroutines.launch
 import java.io.File
 
 private val Night = Color(0xFF0E0D1F)
@@ -72,7 +71,6 @@ fun ScanScreen(vm: ScanViewModel, onClose: () -> Unit, onScanned: () -> Unit) {
     val ctx = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val s by vm.state.collectAsStateWithLifecycle()
-    val scope = rememberCoroutineScope()
     var granted by remember { mutableStateOf(ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
     var mode by remember { mutableStateOf(GuideMode.ONE) }
@@ -104,13 +102,13 @@ fun ScanScreen(vm: ScanViewModel, onClose: () -> Unit, onScanned: () -> Unit) {
         val file = File.createTempFile("scan", ".jpg", ctx.cacheDir)
         capture.takePicture(ImageCapture.OutputFileOptions.Builder(file).build(), ContextCompat.getMainExecutor(ctx), object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                scope.launch { vm.scanUri(ctx.contentResolver, Uri.fromFile(file), mode.scan, onScanned); file.delete() }
+                vm.scanUri(ctx.contentResolver, Uri.fromFile(file), mode.scan, onScanned, deleteWhenDone = file)
             }
             override fun onError(e: ImageCaptureException) { vm.fail("Couldn't take the photo. Try again.") }
         })
     }
 
-    Row(Modifier.fillMaxSize().background(Night)) {
+    Row(Modifier.fillMaxSize().background(Night).safeDrawingPadding()) {
         Box(Modifier.weight(1f).fillMaxHeight().background(Color(0xFF35303F)), Alignment.Center) {
             if (granted) AndroidView({ previewView }, Modifier.fillMaxSize())
             else Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -121,17 +119,13 @@ fun ScanScreen(vm: ScanViewModel, onClose: () -> Unit, onScanned: () -> Unit) {
             RoundOverlay(Modifier.align(Alignment.TopStart).padding(24.dp).size(56.dp).clickable(onClick = onClose).semantics { contentDescription = "Close camera" }, CircleShape) {
                 Icon(Icons.Outlined.Close, null, tint = Color.White)
             }
-            Pill(mode.hint, 18, Modifier.align(Alignment.TopCenter).padding(top = 28.dp))
+            mode.hint?.let { Pill(it, 18, Modifier.align(Alignment.TopCenter).padding(top = 28.dp)) }
             Row(Modifier.align(Alignment.TopEnd).padding(24.dp).clip(RoundedCornerShape(28.dp)).background(Scrim).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 for (m in GuideMode.entries) Text(
                     m.label, color = if (m == mode) Color(0xFF1B1A3A) else Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.height(48.dp).clip(RoundedCornerShape(24.dp)).background(if (m == mode) Amber else Color.Transparent)
                         .clickable { mode = m }.padding(horizontal = 18.dp).wrapContentCenter(),
                 )
-            }
-            Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 26.dp).clip(RoundedCornerShape(24.dp)).background(Scrim).height(48.dp).padding(horizontal = 22.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(Modifier.width(40.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(Amber))
-                Text("Keep the tiny numbers at the bottom of each card sharp and well lit", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
             if (s.busy) Box(Modifier.fillMaxSize().background(Scrim), Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -181,8 +175,8 @@ private fun RoundOverlay(modifier: Modifier, shape: androidx.compose.ui.graphics
 }
 
 /** What the guide shows: one big card, or a 3x3 / 4x3 grid of slots. */
-private enum class GuideMode(val label: String, val cols: Int, val rows: Int, val scan: ScanMode, val hint: String) {
-    ONE("1 card", 1, 1, ScanMode.SINGLE, "Put one card in the frame and fill it"),
+private enum class GuideMode(val label: String, val cols: Int, val rows: Int, val scan: ScanMode, val hint: String?) {
+    ONE("1 card", 1, 1, ScanMode.SINGLE, null),
     NINE("9 cards", 3, 3, ScanMode.GRID, "Lay up to 9 cards in a grid and fill the frame"),
     TWELVE("12 cards", 4, 3, ScanMode.GRID, "12 cards is tricky. Get close and use good light"),
 }

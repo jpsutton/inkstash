@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.Check
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.jpsutton.inkstash.data.Card
+import io.github.jpsutton.inkstash.data.CardValue
 import io.github.jpsutton.inkstash.data.GENERAL_ID
 import io.github.jpsutton.inkstash.data.Location
 import io.github.jpsutton.inkstash.data.LocationKind
@@ -97,6 +99,7 @@ fun CardDetailScreen(vm: CardDetailViewModel, onBack: () -> Unit) {
                     Text(card.version, color = c.muted, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
                 Facts(card, ink)
+                ValuePanel(card, s.value, s.total)
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text("Your copies", fontFamily = io.github.jpsutton.inkstash.ui.Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, color = c.text, modifier = Modifier.weight(1f))
@@ -134,6 +137,47 @@ private fun Facts(card: Card, ink: InkColor) {
         if (card.type.isNotBlank()) Fact(card.type)
         if (card.rarity.isNotBlank()) Fact(card.rarity)
         Fact("${card.setName} · ${card.collectorNumber}")
+    }
+}
+
+private val Dollars: java.text.NumberFormat = java.text.NumberFormat.getCurrencyInstance(java.util.Locale.US)
+
+/** "Estimated value": what your copies are worth, and the price of one. A guess, not a promise. */
+@Composable
+private fun ValuePanel(card: Card, value: CardValue?, copies: Int) {
+    val c = Ink.colors
+    val each = buildList {
+        card.priceUsd?.let { add("${Dollars.format(it)} each") }
+        card.priceFoilUsd?.let { add("${Dollars.format(it)} foil") }
+    }
+    val hasPrice = each.isNotEmpty()
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(c.surface).border(2.dp, c.border, RoundedCornerShape(18.dp)).padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Box(Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(c.warnBg), Alignment.Center) {
+            Icon(Icons.Outlined.Sell, null, tint = c.warnFg, modifier = Modifier.size(24.dp))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text("Estimated value", color = c.muted, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+            Text(
+                when {
+                    !hasPrice -> "No price yet"
+                    copies == 0 -> each.joinToString(" · ")
+                    else -> Dollars.format(value?.total ?: 0.0)
+                },
+                fontFamily = io.github.jpsutton.inkstash.ui.Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, color = c.text,
+            )
+            val note = when {
+                !hasPrice -> "Update the card database in Settings to get prices."
+                copies == 0 -> "You don't own this card yet."
+                value != null && value.unpricedCopies > 0 ->
+                    "${each.joinToString(" · ")}. ${plural(value.unpricedCopies, "copy", "copies")} ${if (value.unpricedCopies == 1) "has" else "have"} no price."
+                else -> "For your ${plural(copies, "copy", "copies")}: ${each.joinToString(" · ")}"
+            }
+            Muted(note, size = 14)
+        }
+        Muted("A guess from Lorcast, not a promise", size = 12, modifier = Modifier.width(150.dp))
     }
 }
 

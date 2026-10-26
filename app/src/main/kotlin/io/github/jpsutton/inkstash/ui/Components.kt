@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -201,7 +202,7 @@ fun Muted(text: String, modifier: Modifier = Modifier, size: Int = 15) =
 
 @Composable
 fun ScreenWithRail(selected: Tab?, onTab: (Tab) -> Unit, content: @Composable () -> Unit) {
-    androidx.compose.foundation.layout.Row(Modifier.fillMaxSize().background(Ink.colors.bg)) {
+    androidx.compose.foundation.layout.Row(Modifier.fillMaxSize().background(Ink.colors.bg).safeDrawingPadding()) {
         NavRail(selected, onTab)
         Box(Modifier.weight(1f).fillMaxHeight()) { content() }
     }

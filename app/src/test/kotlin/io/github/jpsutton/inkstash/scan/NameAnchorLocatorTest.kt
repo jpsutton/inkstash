@@ -5,7 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NameAnchorLocatorTest {
-    private val locator = NameAnchorLocator(listOf("Pluto", "Elsa", "Mickey Mouse", "Be"))
+    private val locator = NameAnchorLocator(listOf("Pluto", "Elsa", "Mickey Mouse", "Be", "Roo"))
 
     // Lines as ML Kit reads the real Pluto - Rescue Dog photo (1600x1200; card at 570,305 to 1080,1005).
     private val pluto = listOf(
@@ -29,6 +29,13 @@ class NameAnchorLocatorTest {
     @Test fun nameCloseToACardNameStillAnchors() {
         val lines = listOf(OcrLine("PLUT0", 603, 676, 690, 704))
         assertEquals(1, locator.locate(lines, emptyList(), 1600, 1200).size)
+    }
+
+    @Test fun threeLetterNamesAnchor() {
+        // Roo - Little Helper, as ML Kit read it from a phone photo (4080x3072).
+        val lines = listOf(OcrLine("ROO", 1133, 1575, 1353, 1689), OcrLine("Little Helper", 1125, 1705, 1480, 1792))
+        val found = locator.locate(lines, emptyList(), 4080, 3072).single()
+        assertEquals(listOf("ROO", "Little Helper"), found.nameCandidates.take(2))
     }
 
     @Test fun rulesTextAndShortWordsDoNotAnchor() {

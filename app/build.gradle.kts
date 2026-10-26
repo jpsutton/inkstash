@@ -58,6 +58,10 @@ android {
         checkReleaseBuilds = true
     }
 
+    // Room's exported schemas, for the migration test (Robolectric reads them as assets). Debug builds
+    // only, so they do not ship in the release APK.
+    sourceSets.getByName("debug").assets.srcDir("$projectDir/schemas")
+
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
@@ -105,6 +109,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
+    testImplementation(libs.room.testing)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)

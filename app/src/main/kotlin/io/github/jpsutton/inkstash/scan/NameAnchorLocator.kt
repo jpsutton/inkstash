@@ -56,7 +56,7 @@ class NameAnchorLocator(cardNames: Collection<String>) {
     }.minByOrNull { it.top }
 
     companion object {
-        private const val MIN_LENGTH = 4
+        private const val MIN_LENGTH = 3
         private const val NAME_SIMILARITY = 0.85
         /** Card height / name text height. Tuned on a photo of Pluto - Rescue Dog (700 px card, 28 px name). */
         const val HEIGHT_PER_NAME = 25f

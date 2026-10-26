@@ -24,6 +24,9 @@ data class Card(
     val imageSmall: String?,
     val imageNormal: String?,
     val imageLarge: String?,
+    /** Estimated price in US dollars per copy (Lorcast), or null when it has none. */
+    val priceUsd: Double? = null,
+    val priceFoilUsd: Double? = null,
 ) {
     /** "Name - Version", or just the name for cards without a version. */
     val fullName: String get() = if (version.isBlank()) name else "$name – $version"

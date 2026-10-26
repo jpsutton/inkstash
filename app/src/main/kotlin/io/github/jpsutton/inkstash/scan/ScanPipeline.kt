@@ -36,7 +36,7 @@ class ScanPipeline(
 
     /** A photo with one card and no anchor: every readable big line is a name candidate. */
     private fun wholePhoto(lines: List<OcrLine>, photo: Bitmap): CardCandidate {
-        val names = lines.filter { it.text.count(Char::isLetter) >= 4 }.sortedByDescending { it.height }.take(10).map { it.text.trim() }
+        val names = lines.filter { it.text.count(Char::isLetter) >= 3 }.sortedByDescending { it.height }.take(10).map { it.text.trim() }
         return CardCandidate(null, Rect(0, 0, photo.width, photo.height), names)
     }
 

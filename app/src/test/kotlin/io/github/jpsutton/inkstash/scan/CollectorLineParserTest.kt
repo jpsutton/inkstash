@@ -63,4 +63,39 @@ class CollectorLineParserTest {
         assertNull(parse("Draw 2 cards. 3 / 4"))
         assertNull(parse("0/204 · EN · 1"))
     }
+
+    @Test fun missingSeparatorsLeaveOnlyASpace() {
+        // As ML Kit read a real card: the second dot was dropped.
+        val f = parse("137/204 - EN 11")!!
+        assertEquals("137", f.collectorNumber)
+        assertEquals("204", f.total)
+        assertEquals("11", f.setCode)
+        assertEquals("11", parse("137/204 · EN 11")!!.setCode)
+        assertEquals("11", parse("137/204 EN · 11")!!.setCode)
+        assertEquals("11", parse("137/204 EN 11")!!.setCode)
+        assertEquals("4", parse("20/204 EN 4")!!.setCode)
+    }
+
+    @Test fun otherPunctuationAndDoubledSeparators() {
+        assertEquals("1", parse("42/204 ' EN ' 1")!!.setCode)
+        assertEquals("1", parse("42/204 +EN+ 1")!!.setCode)
+        assertEquals("1", parse("42/204 .. EN .. 1")!!.setCode)
+        assertEquals("42", parse("42/204·EN·1")!!.collectorNumber)
+    }
+
+    @Test fun digitsReadAsLetters() {
+        assertEquals("58", parse("S8/2O4 · EN · 1")!!.collectorNumber)
+        assertEquals("26", parse("Z6/204 · EN · 1")!!.collectorNumber)
+        assertEquals("86", parse("B6/204 · EN · 1")!!.collectorNumber)
+    }
+
+    @Test fun spaceOnlySeparatorsNeedARealLanguage() {
+        assertNull(parse("5 to 10"))
+        assertNull(parse("12 of 15"))
+        assertNull(parse("Draw 2 cards 3"))
+        assertNull(parse("137/204 XY 11"))
+        assertEquals("FR", parse("137/204 FR 11")!!.lang)
+        // With real separators any two letters still pass (OCR may garble the language).
+        assertEquals("EM", parse("137/204 · EM · 11")!!.lang)
+    }
 }
