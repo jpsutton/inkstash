@@ -1,0 +1,183 @@
+{
+  "repo": {
+    "name": {
+      "en-US": "inkstash"
+    },
+    "description": {
+      "en-US": "inkstash, a Disney Lorcana collection tracker for Android tablets. Built and signed by the release workflow of https://github.com/jpsutton/inkstash."
+    },
+    "icon": {
+      "en-US": {
+        "name": "/icons/icon.png",
+        "sha256": "a46957fba609f3c72bf0a843a79a808cbdfd40e67fb1594460a3334f01fd710d",
+        "size": 823
+      }
+    },
+    "address": "https://jpsutton.github.io/inkstash/fdroid/repo",
+    "timestamp": 1793068575000,
+    "categories": {
+      "Games": {
+        "name": {
+          "en-US": "Games"
+        }
+      }
+    }
+  },
+  "packages": {
+    "io.github.jpsutton.inkstash": {
+      "metadata": {
+        "added": 1793058288000,
+        "categories": [
+          "Games"
+        ],
+        "changelog": "https://github.com/jpsutton/inkstash/releases",
+        "issueTracker": "https://github.com/jpsutton/inkstash/issues",
+        "lastUpdated": 1793068572000,
+        "license": "MIT",
+        "sourceCode": "https://github.com/jpsutton/inkstash",
+        "webSite": "https://github.com/jpsutton/inkstash",
+        "name": {
+          "en-US": "inkstash"
+        },
+        "summary": {
+          "en-US": "Track your Disney Lorcana card collection by taking photos"
+        },
+        "description": {
+          "en-US": "inkstash is a collection tracker for Disney Lorcana, made for tablets and for kids to use.\n\nLay up to nine cards on a table, take one photo, and inkstash reads the small collector\nnumber on each card and finds it in its card database. Check the matches, then add the\ncards to your collection.\n\nKeep cards in the main collection, in pools such as binders and boxes, or in temp sets for\na deck: a temp set borrows cards, and dissolving it sends every card back where it came from.\nSave a backup of your collection to a file at any time.\n\nCard data and images come from Lorcast (lorcast.com). Card text is read on the tablet; no\nphoto leaves it.\n\nPortions of the materials used are property of Disney/Ravensburger. Used under Ravensburger's\nCommunity Code Policy. inkstash is not published, endorsed, or specifically approved by Disney\nor Ravensburger."
+        },
+        "preferredSigner": "e3eae5c222d59751fd2bf06dec9047939e8df5992ba759b53a66936db2421633"
+      },
+      "versions": {
+        "44b96e153efcadb48543b88bb2b98b5ec5671bc5ea164ccc934a4127d18ac391": {
+          "added": 1793068572000,
+          "file": {
+            "name": "/inkstash-0.2.3.apk",
+            "sha256": "44b96e153efcadb48543b88bb2b98b5ec5671bc5ea164ccc934a4127d18ac391",
+            "size": 71919838
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.2.3",
+            "versionCode": 203,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "e3eae5c222d59751fd2bf06dec9047939e8df5992ba759b53a66936db2421633"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.INTERNET"
+              },
+              {
+                "name": "android.permission.CAMERA"
+              },
+              {
+                "name": "android.permission.ACCESS_LOCAL_NETWORK"
+              },
+              {
+                "name": "io.github.jpsutton.inkstash.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              }
+            ]
+          }
+        },
+        "881feadc5f3a4143dd967364cde8eea5443072a17c67c707d8a59c00981b0108": {
+          "added": 1793064897000,
+          "file": {
+            "name": "/inkstash-0.2.2.apk",
+            "sha256": "881feadc5f3a4143dd967364cde8eea5443072a17c67c707d8a59c00981b0108",
+            "size": 71919838
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.2.2",
+            "versionCode": 202,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "e3eae5c222d59751fd2bf06dec9047939e8df5992ba759b53a66936db2421633"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.INTERNET"
+              },
+              {
+                "name": "android.permission.CAMERA"
+              },
+              {
+                "name": "android.permission.ACCESS_LOCAL_NETWORK"
+              },
+              {
+                "name": "io.github.jpsutton.inkstash.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              }
+            ]
+          }
+        },
+        "25149b583b544293c4aa8b338c12bf4e97dcd9530186420c07dbe3200868086b": {
+          "added": 1793062656000,
+          "file": {
+            "name": "/inkstash-0.2.1.apk",
+            "sha256": "25149b583b544293c4aa8b338c12bf4e97dcd9530186420c07dbe3200868086b",
+            "size": 71919838
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.2.1",
+            "versionCode": 201,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "e3eae5c222d59751fd2bf06dec9047939e8df5992ba759b53a66936db2421633"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.INTERNET"
+              },
+              {
+                "name": "android.permission.CAMERA"
+              },
+              {
+                "name": "io.github.jpsutton.inkstash.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

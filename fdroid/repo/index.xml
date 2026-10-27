@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<fdroid>
+	<repo icon="icon.png" name="inkstash" pubkey="308204f2308202daa003020102020900a2c0849a39477679300d06092a864886f70d01010c05003026312430220603550403131b496e6b737461736820462d44726f6964207265706f7369746f72793020170d3236313032363139343831315a180f32303534303331333139343831315a3026312430220603550403131b496e6b737461736820462d44726f6964207265706f7369746f727930820222300d06092a864886f70d01010105000382020f003082020a0282020100bd6b37e50157b1bc115de57cdb5dd34437ab159f813fae47d6fe9dea6ef6d6fd98911bddb9ae421b8945840321fde18e7339397aa9bcb8cb16991037bfac841798e67f82a24b7f710bcdfc97473afa3764b8bf583e8258344f0b40d434d3447bf1ec9333ae6dd15fe00d99794de868f137865f7de8f2260b17d359d777ab8a710440d2c4fbf2cfca03071bbe38e63c15e6cc6ec2c8ddbf9cc3fc73e111bc188e781c57e0040ca9a414bfec3f7911a8e9a893b6d8878c947cc75df3ec07517c1e62a0850b52eef6c34e39c24c0a745228f0542d6d279846aa646ed8f89f862e6cafc5dfe6ef018e2c5a0392d4343656c86810d8feb3ae4e20254ecb6c477416b6848d08751f07388b335f03057357cc911b5628f39b728e79bdc6c8cbaf005e9ca88391b84b27308006b774c2c253887c2ff53bb8c37a24d68a3ac46718b9fe913956f391262ce3f46ec10e96889f7a378fae3acce227c3bce2c737b30cb21c24b265a2cabfe63ca4ffda661e41282c7021dde1f5a11d62b6f6884bba8fbbae7f2ebe1f4702a2c9deedb2ff116ea0b0c8ff3ca32bbe57cea55a9fa581a803d7b88c7dc5bddcfe41f74d0fa7cee0dfb8abf55e440455ee29ef440fab4817752a5c3d5075ae6489ae13ff242f7516939b79e2329c5e12d8e97ceb8b349c92c31e05988f79c0d413dd625019ada408331ff634bbe778191e9fcab240bfc830ab66830203010001a321301f301d0603551d0e04160414342d67a8a99dc123516463829cd0f73eb4b23791300d06092a864886f70d01010c050003820201006cefa3772c1c0ade9fb9a97be94d2c7195d17b5b4acd6ea481421ef1c0acb8d49fbe5206f783f0f6b4ea2a2c7ed760ee76b4a5f5e813d868f67e6b280b349ebe581637627850f97d96937232f9174751fee09e195f3a622732ab44f7a3946d318c4b22002670f5ff116317898cd84e758fab22efc2f6e40a5499525161c3b0471410e1f668330aa260164c7d4a80b849eab07d731b4171a7d58177313efa0d5f4b09ae682cd500e4570bb359e73dec58748743afd4085895b4feed68f1c9d00c96211de5c776c56cb8e9d687b8096582042ceb876e666e33ba9a705fbacf707269fed424d06e016df4c664538d98f82b71eac18c90920baf670504e03f6cd03b6888acf52987bfdcb0ae3910c1236b7d410b7671fee69af43c13007ac0cc450df0f3f4704f1a7ded016f216d4c2d4e415c0f8a30e5935b3b577e97ad417f18f2459858c2a5fb0d6c6530543f9c0d928e86e57cb90334c2f3a5f3e8c7153243d90e0ee0b16ab9c792ea191337cc5cb55c9a6fc6e0f5230a1946bef5b554e2b9a4a9183623bef2a6f3cfa34ae2b14406f9de7c9377f2bb99d5959ce783ef263087958a125b0e55664496ca48bc5ce757e0625b4aa7eba182595ade78b78d7f2b913bc2172a805e1f4ca76c3078b0247f1ba8f45bdaef84993c86ba58104fc9a3f2f2fbe8b2f2bb3304b7d3bace049718a949a45e30842d2a013502cd3e61a8128a" timestamp="1793068575" url="https://jpsutton.github.io/inkstash/fdroid/repo" version="20002">
+		<description>inkstash, a Disney Lorcana collection tracker for Android tablets. Built and signed by the release workflow of https://github.com/jpsutton/inkstash.</description>
+	</repo>
+	<application id="io.github.jpsutton.inkstash">
+		<id>io.github.jpsutton.inkstash</id>
+		<added>2026-10-26</added>
+		<lastupdated>2026-10-27</lastupdated>
+		<name>inkstash</name>
+		<summary>Track your Disney Lorcana card collection by taking photos</summary>
+		<desc>inkstash is a collection tracker for Disney Lorcana, made for tablets and for kids to use.
+
+Lay up to nine cards on a table, take one photo, and inkstash reads the small collector
+number on each card and finds it in its card database. Check the matches, then add the
+cards to your collection.
+
+Keep cards in the main collection, in pools such as binders and boxes, or in temp sets for
+a deck: a temp set borrows cards, and dissolving it sends every card back where it came from.
+Save a backup of your collection to a file at any time.
+
+Card data and images come from Lorcast (lorcast.com). Card text is read on the tablet; no
+photo leaves it.
+
+Portions of the materials used are property of Disney/Ravensburger. Used under Ravensburger's
+Community Code Policy. inkstash is not published, endorsed, or specifically approved by Disney
+or Ravensburger.</desc>
+		<license>MIT</license>
+		<categories>Games</categories>
+		<category>Games</category>
+		<web>https://github.com/jpsutton/inkstash</web>
+		<source>https://github.com/jpsutton/inkstash</source>
+		<tracker>https://github.com/jpsutton/inkstash/issues</tracker>
+		<changelog>https://github.com/jpsutton/inkstash/releases</changelog>
+		<marketversion></marketversion>
+		<marketvercode>203</marketvercode>
+		<package>
+			<version>0.2.3</version>
+			<versioncode>203</versioncode>
+			<apkname>inkstash-0.2.3.apk</apkname>
+			<hash type="sha256">44b96e153efcadb48543b88bb2b98b5ec5671bc5ea164ccc934a4127d18ac391</hash>
+			<size>71919838</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-10-27</added>
+			<sig>95bcf46f0653a79d9c6a2824a3b31e27</sig>
+			<permissions>ACCESS_LOCAL_NETWORK,ACCESS_NETWORK_STATE,CAMERA,INTERNET,io.github.jpsutton.inkstash.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.2.2</version>
+			<versioncode>202</versioncode>
+			<apkname>inkstash-0.2.2.apk</apkname>
+			<hash type="sha256">881feadc5f3a4143dd967364cde8eea5443072a17c67c707d8a59c00981b0108</hash>
+			<size>71919838</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-10-27</added>
+			<sig>95bcf46f0653a79d9c6a2824a3b31e27</sig>
+			<permissions>ACCESS_LOCAL_NETWORK,ACCESS_NETWORK_STATE,CAMERA,INTERNET,io.github.jpsutton.inkstash.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.2.1</version>
+			<versioncode>201</versioncode>
+			<apkname>inkstash-0.2.1.apk</apkname>
+			<hash type="sha256">25149b583b544293c4aa8b338c12bf4e97dcd9530186420c07dbe3200868086b</hash>
+			<size>71919838</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-10-27</added>
+			<sig>95bcf46f0653a79d9c6a2824a3b31e27</sig>
+			<permissions>ACCESS_NETWORK_STATE,CAMERA,INTERNET,io.github.jpsutton.inkstash.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+	</application>
+</fdroid>
