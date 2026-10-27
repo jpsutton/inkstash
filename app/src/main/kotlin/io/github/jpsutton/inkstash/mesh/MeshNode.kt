@@ -164,7 +164,7 @@ class MeshNode(
 
     private suspend fun doJoin(address: String, passphrase: String, invite: MeshInvite?) {
         val targets = if (invite != null) invite.addresses else listOf(address)
-        var last: IOException = IOException("Couldn't connect")
+        val failures = mutableListOf<String>()
         for (t in targets) {
             val socket = Socket()
             try {
@@ -201,10 +201,11 @@ class MeshNode(
                 throw e
             } catch (e: IOException) {
                 socket.close()
-                last = e
+                failures += if (targets.size == 1) (e.message ?: "Couldn't connect") else "$t: ${e.message ?: "Couldn't connect"}"
             }
         }
-        throw last
+        // Every address's error, so a bad address tried last doesn't hide why a good one failed.
+        throw IOException(failures.joinToString("\n").ifEmpty { "Couldn't connect" })
     }
 
     private suspend fun finishJoin(m: MeshMessage.Admitted, passphrase: String, channel: SecureChannel, socket: Socket, usedAddress: String) {
@@ -641,11 +642,17 @@ class MeshNode(
             return a.substring(0, i) to (a.substring(i + 1).toIntOrNull() ?: throw IOException("Bad address: $address"))
         }
 
+        /** 192.0.0.0/29 (RFC 7335): the address Android gives its own cellular IPv4 translator. It only ever reaches the device itself. */
+        fun isClatAddress(a: java.net.InetAddress): Boolean {
+            val b = a.address
+            return b.size == 4 && b[0] == 192.toByte() && b[1] == 0.toByte() && b[2] == 0.toByte() && (b[3].toInt() and 0xFF) < 8
+        }
+
         /** This device's IPv4 addresses on its networks, with the port: what other devices would dial. */
         fun localAddresses(port: Int): List<String> = try {
             NetworkInterface.getNetworkInterfaces().toList().filter { it.isUp && !it.isLoopback }
                 .flatMap { it.inetAddresses.toList() }
-                .filter { it is java.net.Inet4Address && !it.isLoopbackAddress && !it.isLinkLocalAddress }
+                .filter { it is java.net.Inet4Address && !it.isLoopbackAddress && !it.isLinkLocalAddress && !isClatAddress(it) }
                 .map { "${it.hostAddress}:$port" }
         } catch (e: Exception) {
             emptyList()

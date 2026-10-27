@@ -1,5 +1,10 @@
 package io.github.jpsutton.inkstash.ui.mesh
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,11 +46,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.jpsutton.inkstash.mesh.JoinProgress
+import io.github.jpsutton.inkstash.mesh.LocalNetworkPermission
 import io.github.jpsutton.inkstash.mesh.MeshInvite
 import io.github.jpsutton.inkstash.mesh.MeshNode
 import io.github.jpsutton.inkstash.mesh.MeshState
@@ -73,6 +82,20 @@ fun MeshScreen(vm: MeshViewModel, onBack: () -> Unit, onScanCode: () -> Unit) {
     val error by vm.error.collectAsStateWithLifecycle()
     val c = Ink.colors
     var confirm by remember { mutableStateOf<Confirm?>(null) }
+    val ctx = LocalContext.current
+    var allowed by remember { mutableStateOf(LocalNetworkPermission.granted(ctx)) }
+    fun setAllowed(now: Boolean) {
+        if (now && !allowed) vm.restartNetwork() // listening and dialing were blocked until now
+        allowed = now
+    }
+    val request = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { setAllowed(it) }
+    val ask = { request.launch(LocalNetworkPermission.NAME) }
+    LaunchedEffect(Unit) { if (!allowed) ask() }
+    // The person may switch it on in the phone's settings and come back.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { setAllowed(LocalNetworkPermission.granted(ctx)) }
+    val openSettings = {
+        ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", ctx.packageName, null)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
 
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState())
@@ -89,7 +112,8 @@ fun MeshScreen(vm: MeshViewModel, onBack: () -> Unit, onScanCode: () -> Unit) {
         }
         s.notice?.let { Notice(it, vm::dismissNotice) }
         s.listenError?.let { Notice(it, null) }
-        if (s.inMesh) InMesh(s, vm, onConfirm = { confirm = it }) else NotInMesh(s, vm, onScanCode)
+        if (!allowed) NeedsLocalNetwork(onAllow = ask, onSettings = openSettings)
+        if (s.inMesh) InMesh(s, vm, allowed, ask, onConfirm = { confirm = it }) else NotInMesh(s, vm, allowed, ask, onScanCode)
     }
 
     invite?.let { InviteDialog(it, vm::hideInvite) }
@@ -116,7 +140,16 @@ fun MeshScreen(vm: MeshViewModel, onBack: () -> Unit, onScanCode: () -> Unit) {
 }
 
 @Composable
-private fun NotInMesh(s: MeshState, vm: MeshViewModel, onScanCode: () -> Unit) {
+private fun NeedsLocalNetwork(onAllow: () -> Unit, onSettings: () -> Unit) {
+    Panel("Allow devices on your Wi-Fi", "inkstash needs your OK to talk to your other devices. Without it, syncing can't work.") {
+        BigButton("Allow", onAllow, style = ButtonStyle.Primary, modifier = Modifier.fillMaxWidth())
+        Muted("If nothing pops up, open the settings. Then choose Permissions, and turn on Nearby devices.", size = 14)
+        BigButton("Open settings", onSettings, modifier = Modifier.fillMaxWidth())
+    }
+}
+
+@Composable
+private fun NotInMesh(s: MeshState, vm: MeshViewModel, allowed: Boolean, ask: () -> Unit, onScanCode: () -> Unit) {
     var name by remember { mutableStateOf(s.deviceName) }
     var address by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
@@ -128,13 +161,13 @@ private fun NotInMesh(s: MeshState, vm: MeshViewModel, onScanCode: () -> Unit) {
     }
     Panel("Join a mesh", "Use another device that is already in it.") {
         JoinProgressView(s.join)
-        BigButton("Scan a code", onScanCode, icon = Icons.Outlined.QrCodeScanner, style = ButtonStyle.Primary, modifier = Modifier.fillMaxWidth())
+        BigButton("Scan a code", if (allowed) onScanCode else ask, icon = Icons.Outlined.QrCodeScanner, style = ButtonStyle.Primary, modifier = Modifier.fillMaxWidth())
         Muted("On the other device: Settings, Sync with other devices, Show a code to scan.", size = 14)
         Muted("Or type it in", size = 15)
         InkTextField(address, { address = it }, "Its address, like 192.168.1.20", Modifier.fillMaxWidth(), androidx.compose.ui.text.input.KeyboardType.Uri)
         InkTextField(pass, { pass = it }, "The mesh's passphrase", Modifier.fillMaxWidth())
         BigButton(
-            "Ask to join", { vm.join(address, pass) }, modifier = Modifier.fillMaxWidth(),
+            "Ask to join", { if (allowed) vm.join(address, pass) else ask() }, modifier = Modifier.fillMaxWidth(),
             enabled = address.isNotBlank() && pass.isNotEmpty() && s.join !is JoinProgress.Connecting && s.join !is JoinProgress.WaitingForApproval,
         )
     }
@@ -167,14 +200,14 @@ private fun JoinProgressView(p: JoinProgress?) {
 }
 
 @Composable
-private fun InMesh(s: MeshState, vm: MeshViewModel, onConfirm: (Confirm) -> Unit) {
+private fun InMesh(s: MeshState, vm: MeshViewModel, allowed: Boolean, ask: () -> Unit, onConfirm: (Confirm) -> Unit) {
     var name by remember { mutableStateOf(s.deviceName) }
     var newAddress by remember { mutableStateOf("") }
 
     for (p in s.pending) PendingCard(p, onApprove = { vm.approve(p.nodeId) }, onDecline = { vm.decline(p.nodeId) })
 
     Panel("Add a device", "The new device must be on the same Wi-Fi.") {
-        BigButton("Show a code to scan", vm::showInvite, icon = Icons.Outlined.QrCode2, style = ButtonStyle.Primary, modifier = Modifier.fillMaxWidth())
+        BigButton("Show a code to scan", if (allowed) vm::showInvite else ask, icon = Icons.Outlined.QrCode2, style = ButtonStyle.Primary, modifier = Modifier.fillMaxWidth())
         Muted("On the new device, open Sync with other devices and tap Scan a code.", size = 14)
     }
     Panel("Devices in this mesh", if (s.members.isEmpty()) "No other device yet." else null) {
