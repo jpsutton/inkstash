@@ -72,6 +72,9 @@ fun QrScanScreen(onInvite: (MeshInvite) -> Unit, onClose: () -> Unit) {
     val executor = remember { Executors.newSingleThreadExecutor() }
     val scanner = remember { BarcodeScanning.getClient(BarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build()) }
 
+    // Declared first so it is disposed last: the camera must stop before the scanner closes and the executor stops.
+    DisposableEffect(Unit) { onDispose { scanner.close(); executor.shutdown() } }
+
     DisposableEffect(granted) {
         var provider: ProcessCameraProvider? = null
         if (granted) {
@@ -109,7 +112,6 @@ fun QrScanScreen(onInvite: (MeshInvite) -> Unit, onClose: () -> Unit) {
         }
         onDispose { provider?.unbindAll() }
     }
-    DisposableEffect(Unit) { onDispose { scanner.close(); executor.shutdown() } }
 
     Box(Modifier.fillMaxSize().background(Night).safeDrawingPadding()) {
         if (granted) AndroidView({ previewView }, Modifier.fillMaxSize())
