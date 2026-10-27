@@ -2,7 +2,9 @@
 # full build (build.yml), so this takes that run's APK, signs it and releases it:
 #   - zipalign + apksigner with the APK key (INKSTASH_APK_KEYSTORE). Android refuses an update
 #     signed by another key, so it must never change. Without the secret the release is skipped.
-#   - tag v<version> and a GitHub Release with inkstash-<version>.apk.
+#   - tag v<version> and a GitHub Release with inkstash-<version>.apk and
+#     inkstash-<version>-mapping.txt (the R8 mapping, to decode crash traces; kept for good,
+#     unlike the build artifact, which expires).
 #   - the self-hosted F-Droid repository on GitHub Pages (gh-pages branch, /fdroid), signed with
 #     INKSTASH_FDROID_KEYSTORE. Without that secret the release goes out without it.
 #
@@ -105,6 +107,7 @@ jobs:
             exit 1
           fi
           gh run download "${{ steps.build.outputs.run }}" -R "$GITHUB_REPOSITORY" -n inkstash-android -D android
+          gh run download "${{ steps.build.outputs.run }}" -R "$GITHUB_REPOSITORY" -n inkstash-mapping -D mapping
           mkdir -p dist
           unsigned=$(find android -name '*.apk' | head -n 1)
           tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
@@ -116,6 +119,9 @@ jobs:
           "$tools/apksigner" verify "$out"
           rm -f "$RUNNER_TEMP/apk.p12" "$out.idsig"
           echo "apk=$out" >> "$GITHUB_OUTPUT"
+          # The mapping of this exact APK; the signature does not change the code.
+          cp mapping/mapping.txt "dist/inkstash-${{ steps.build.outputs.version }}-mapping.txt"
+          echo "mapping=dist/inkstash-${{ steps.build.outputs.version }}-mapping.txt" >> "$GITHUB_OUTPUT"
 
       - name: Upload the dry run
         if: steps.build.outputs.dry_run == 'true'
@@ -139,7 +145,7 @@ jobs:
           set -euo pipefail
           gh release create "v${{ steps.build.outputs.version }}" -R "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" --title "inkstash ${{ steps.build.outputs.version }}" \
-            --generate-notes "${{ steps.apk.outputs.apk }}"
+            --generate-notes "${{ steps.apk.outputs.apk }}" "${{ steps.apk.outputs.mapping }}"
 
       # The self-hosted F-Droid repository on GitHub Pages (gh-pages branch, /fdroid).
       - name: F-Droid repository
