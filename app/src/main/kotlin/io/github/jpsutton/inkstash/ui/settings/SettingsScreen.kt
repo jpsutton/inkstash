@@ -132,14 +132,14 @@ private fun LookSection(theme: ThemeMode, onTheme: (ThemeMode) -> Unit) {
             )) {
                 val on = mode == theme
                 val shape = RoundedCornerShape(if (compact) 16.dp else 18.dp)
-                val tile = Modifier.weight(1f).height(if (compact) 84.dp else 56.dp).clip(shape).background(if (on) c.surface2 else c.surface)
+                // Icon above label on every size. A side-by-side Row let a wrapped label fill the
+                // leftover width, which pushed the icon to the tile's left edge.
+                val tile = Modifier.weight(1f).height(if (compact) 84.dp else 72.dp).clip(shape).background(if (on) c.surface2 else c.surface)
                     .border(if (compact) 3.dp else 2.dp, if (on) c.primary else c.border, shape).clickable(role = Role.RadioButton) { onTheme(mode) }
-                val content: @Composable () -> Unit = {
-                    Icon(icon, null, tint = c.text, modifier = Modifier.size(if (compact) 24.dp else 20.dp))
+                Column(tile.padding(horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)) {
+                    Icon(icon, null, tint = c.text, modifier = Modifier.size(24.dp))
                     Text(label, color = c.text, fontSize = if (compact) 14.sp else 15.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
                 }
-                if (compact) Column(tile.padding(horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)) { content() }
-                else Row(tile, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)) { content() }
             }
         }
         Muted(when (theme) {
