@@ -165,6 +165,24 @@ class MeshNodeTest {
         assertFalse(b.identity.inMesh)
     }
 
+    @Test fun everyFailedInviteAddressIsReported() {
+        val a = founder()
+        val b = TestNode("b")
+        val invite = a.node.createInvite()!!.copy(addresses = listOf("127.0.0.1:1", "127.0.0.1:2"))
+        assertFalse(runBlocking { b.node.join("", "", invite) })
+        val message = (b.state.join as JoinProgress.Failed).message
+        assertTrue(message, message.contains("127.0.0.1:1: ") && message.contains("127.0.0.1:2: "))
+    }
+
+    @Test fun theCarrierTranslatorAddressIsNotShared() {
+        fun clat(ip: String) = MeshNode.isClatAddress(java.net.InetAddress.getByName(ip))
+        assertTrue(clat("192.0.0.4"))
+        assertTrue(clat("192.0.0.0"))
+        assertFalse(clat("192.0.0.8"))
+        assertFalse(clat("192.0.1.4"))
+        assertFalse(clat("192.168.1.102"))
+    }
+
     @Test fun anExpiredInviteNeedsApprovalInstead() {
         val a = founder()
         val b = TestNode("b")

@@ -41,6 +41,9 @@ class MeshViewModel(private val mesh: MeshNode, private val scope: CoroutineScop
         scope.launch { mesh.join("", "", invite) }
     }
 
+    /** Listens and dials again, once the local network permission is granted. */
+    fun restartNetwork() { scope.launch { mesh.start() } }
+
     fun approve(nodeId: String) = mesh.approve(nodeId)
     fun decline(nodeId: String) = mesh.decline(nodeId)
     fun remove(nodeId: String) { scope.launch { mesh.remove(nodeId) } }
