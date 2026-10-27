@@ -57,7 +57,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.jpsutton.inkstash.data.OwnedCard
 import io.github.jpsutton.inkstash.ui.ArtSize
 import io.github.jpsutton.inkstash.ui.CardArt
-import io.github.jpsutton.inkstash.ui.CostGem
 import io.github.jpsutton.inkstash.ui.Ink
 import io.github.jpsutton.inkstash.ui.InkColor
 import io.github.jpsutton.inkstash.ui.Muted
@@ -249,8 +248,7 @@ private fun CardTile(owned: OwnedCard, onClick: () -> Unit) {
             .clickable(onClick = onClick),
     ) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            CardArt(card, Modifier.fillMaxSize(), ArtSize.Small)
-            CostGem(card.cost, ink, 34.dp, Modifier.align(Alignment.TopStart).padding(8.dp))
+            CardArt(card, Modifier.fillMaxSize(), ArtSize.Small, costGem = 34.dp)
             Column(Modifier.align(Alignment.TopEnd).padding(8.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("×${owned.qty}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.clip(RoundedCornerShape(13.dp)).background(Color(0xFF1B1A3A)).padding(horizontal = 10.dp, vertical = 3.dp))
@@ -282,8 +280,7 @@ private fun CardTilePhone(owned: OwnedCard, onClick: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Box(Modifier.fillMaxWidth().aspectRatio(5f / 7f).clip(RoundedCornerShape(10.dp)).border(2.dp, ink.color, RoundedCornerShape(10.dp))) {
-            CardArt(card, Modifier.fillMaxSize(), ArtSize.Small)
-            CostGem(card.cost, ink, 24.dp, Modifier.align(Alignment.TopStart).padding(5.dp))
+            CardArt(card, Modifier.fillMaxSize(), ArtSize.Small, costGem = 24.dp)
             Column(Modifier.align(Alignment.TopEnd).padding(5.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text("×${owned.qty}", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.height(22.dp).clip(RoundedCornerShape(11.dp)).background(Color(0xFF1B1A3A)).padding(horizontal = 7.dp).wrapContentHeight(Alignment.CenterVertically))

@@ -63,7 +63,6 @@ import io.github.jpsutton.inkstash.ui.Badge
 import io.github.jpsutton.inkstash.ui.BigButton
 import io.github.jpsutton.inkstash.ui.ButtonStyle
 import io.github.jpsutton.inkstash.ui.CardArt
-import io.github.jpsutton.inkstash.ui.CostGem
 import io.github.jpsutton.inkstash.ui.Ink
 import io.github.jpsutton.inkstash.ui.Fredoka
 import io.github.jpsutton.inkstash.ui.SheetTitle
@@ -102,8 +101,7 @@ fun CardDetailScreen(vm: CardDetailViewModel, onBack: () -> Unit) {
                 Modifier.fillMaxHeight().aspectRatio(5f / 7f).clip(RoundedCornerShape(22.dp))
                     .border(4.dp, ink.color, RoundedCornerShape(22.dp)),
             ) {
-                CardArt(card, Modifier.fillMaxSize(), ArtSize.Large)
-                CostGem(card.cost, ink, 52.dp, Modifier.align(Alignment.TopStart).padding(12.dp))
+                CardArt(card, Modifier.fillMaxSize(), ArtSize.Large, costGem = 52.dp)
             }
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                 Column {
@@ -159,8 +157,7 @@ private fun DetailPhone(
                     .shadow(10.dp, RoundedCornerShape(16.dp), spotColor = c.shadow)
                     .clip(RoundedCornerShape(16.dp)).border(3.dp, ink.color, RoundedCornerShape(16.dp)),
             ) {
-                CardArt(card, Modifier.fillMaxSize(), ArtSize.Large)
-                CostGem(card.cost, ink, 40.dp, Modifier.align(Alignment.TopStart).padding(10.dp))
+                CardArt(card, Modifier.fillMaxSize(), ArtSize.Large, costGem = 40.dp)
             }
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Title(card.name, size = 32)

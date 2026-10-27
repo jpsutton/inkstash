@@ -229,8 +229,7 @@ private fun RowCardPhone(row: ReviewRow, number: Int, vm: ReviewViewModel, onFin
             if (card != null) {
                 val ink = InkColor.of(card.ink)
                 Box(Modifier.size(46.dp, 64.dp).clip(RoundedCornerShape(7.dp)).border(2.dp, ink.color, RoundedCornerShape(7.dp))) {
-                    CardArt(card, Modifier.fillMaxSize(), ArtSize.Small)
-                    CostGem(card.cost, ink, 18.dp, Modifier.align(Alignment.TopStart).padding(3.dp))
+                    CardArt(card, Modifier.fillMaxSize(), ArtSize.Small, costGem = 18.dp)
                 }
             } else Box(Modifier.size(46.dp, 64.dp).dashedBorder(c.badFg, 7.dp), Alignment.Center) {
                 Text("?", color = c.badFg, fontFamily = Fredoka, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
@@ -314,8 +313,7 @@ private fun RowCard(row: ReviewRow, number: Int, vm: ReviewViewModel, onFind: ()
         Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = c.muted)
         Box(Modifier.size(70.dp, 98.dp).clip(RoundedCornerShape(8.dp)).background(c.surface2), Alignment.Center) {
             if (card != null) {
-                CardArt(card, Modifier.fillMaxSize(), ArtSize.Small)
-                CostGem(card.cost, InkColor.of(card.ink), 26.dp, Modifier.align(Alignment.TopStart).padding(4.dp))
+                CardArt(card, Modifier.fillMaxSize(), ArtSize.Small, costGem = 26.dp)
             } else Text("?", color = c.badFg, fontFamily = Fredoka, fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
