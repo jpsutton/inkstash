@@ -135,12 +135,19 @@ fun ScanScreen(vm: ScanViewModel, onClose: () -> Unit, onScanned: () -> Unit) {
                 Icon(Icons.Outlined.Close, null, tint = Color.White)
             }
             mode.hint?.let { Pill(it, 18, Modifier.align(Alignment.TopCenter).padding(top = 28.dp)) }
-            Row(Modifier.align(Alignment.TopEnd).padding(24.dp).clip(RoundedCornerShape(28.dp)).background(Scrim).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                for (m in GuideMode.entries) Text(
-                    m.label, color = if (m == mode) Color(0xFF1B1A3A) else Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.height(48.dp).clip(RoundedCornerShape(24.dp)).background(if (m == mode) Amber else Color.Transparent)
-                        .clickable { mode = m }.padding(horizontal = 18.dp).wrapContentCenter(),
-                )
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                // Sit just left of the card guide, but never off the screen edge.
+                val start = maxOf(8.dp, (maxWidth - guideWidth(mode)) / 2 - ModePillsWidth - 16.dp)
+                Column(
+                    Modifier.align(Alignment.CenterStart).padding(start = start).width(ModePillsWidth).clip(RoundedCornerShape(28.dp)).background(Scrim).padding(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    for (m in GuideMode.entries) Text(
+                        m.label, color = if (m == mode) Color(0xFF1B1A3A) else Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1,
+                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(24.dp)).background(if (m == mode) Amber else Color.Transparent)
+                            .clickable { mode = m }.wrapContentCenter(),
+                    )
+                }
             }
             if (s.busy) Box(Modifier.fillMaxSize().background(Scrim), Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -196,35 +203,25 @@ private enum class GuideMode(val label: String, val cols: Int, val rows: Int, va
     TWELVE("12 cards", 4, 3, ScanMode.GRID, "12 cards is tricky. Get close and use good light"),
 }
 
-/** Corner brackets and dashed card slots that show how to lay cards out. */
+private val ModePillsWidth = 120.dp
+private val GuideGap = 16.dp
+
+private fun guideSlotWidth(mode: GuideMode) = if (mode == GuideMode.ONE) 440.dp else 140.dp
+
+/** Width of the card slots in the guide, so other overlays can sit beside it. */
+private fun guideWidth(mode: GuideMode) = guideSlotWidth(mode) * mode.cols + GuideGap * (mode.cols - 1)
+
+/** Card slots that show how to lay cards out. */
 @Composable
 private fun GuideFrame(mode: GuideMode) {
     val single = mode == GuideMode.ONE
-    val slotW = if (single) 440.dp else 140.dp
+    val slotW = guideSlotWidth(mode)
     val slotH = if (single) 616.dp else 196.dp
-    val gap = 16.dp
-    val frameW = slotW * mode.cols + gap * (mode.cols - 1) + 48.dp
-    Box(Modifier.width(frameW).height(if (single) 668.dp else 668.dp)) {
-        val corner = Modifier.size(44.dp)
-        for (a in listOf(Alignment.TopStart, Alignment.TopEnd, Alignment.BottomStart, Alignment.BottomEnd)) {
-            Box(Modifier.align(a).then(corner).border(
-                width = 5.dp, color = Color.White,
-                shape = when (a) {
-                    Alignment.TopStart -> RoundedCornerShape(topStart = 14.dp)
-                    Alignment.TopEnd -> RoundedCornerShape(topEnd = 14.dp)
-                    Alignment.BottomStart -> RoundedCornerShape(bottomStart = 14.dp)
-                    else -> RoundedCornerShape(bottomEnd = 14.dp)
-                },
-            ))
-        }
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+    Column(verticalArrangement = Arrangement.spacedBy(GuideGap)) {
         repeat(mode.rows) {
-            Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(GuideGap)) {
                 repeat(mode.cols) {
-                    Box(Modifier.size(slotW, slotH).clip(RoundedCornerShape(12.dp)).border(3.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(12.dp)), Alignment.BottomStart) {
-                        Box(Modifier.padding(10.dp).height(12.dp).width(slotW * 0.62f).clip(RoundedCornerShape(4.dp)).background(Amber.copy(alpha = 0.75f)))
-                    }
+                    Box(Modifier.size(slotW, slotH).clip(RoundedCornerShape(12.dp)).border(3.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(12.dp)))
                 }
             }
         }
