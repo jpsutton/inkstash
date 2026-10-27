@@ -48,3 +48,11 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           compression-level: 0
+      # R8 mapping of that APK, to decode its crash traces. release.yml publishes it with the APK.
+      - uses: actions/upload-artifact@v7
+        if: github.event_name == 'workflow_dispatch' || github.base_ref == 'main'
+        with:
+          name: inkstash-mapping
+          path: app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
+          retention-days: 14
